@@ -77,6 +77,8 @@ type
     Image2: TImage;
     Label8: TLabel;
     EvolutionAPI1: TEvolutionAPI;
+    Label4: TLabel;
+    edtPortWebhook: TEdit;
     procedure btnTextoSimplesClick(Sender: TObject);
     procedure btnBotaoSimplesClick(Sender: TObject);
     procedure btnListaMenuClick(Sender: TObject);
@@ -508,7 +510,8 @@ end;
 
 procedure TfrmPrincipal.FormCreate(Sender: TObject);
 begin
-  EvolutionAPI1.Port := 8020;
+  EvolutionAPI1.Port := 8080;
+  EvolutionAPI1.PortWebhook := 8020;
   LerConfiguracoes;
 end;
 
@@ -517,7 +520,8 @@ begin
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
   EvolutionAPI1.DDIDefault := StrToIntDef(edtDDI_Default.Text, 55);
-  EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8020);
+  EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
+  EvolutionAPI1.PortWebhook := StrToIntDef(edtPortWebhook.Text, 8020);
   EvolutionAPI1.StartServer;
 end;
 
@@ -526,12 +530,13 @@ var
   NomeArquivo: string;
   ArquivoConfig: TCustomIniFile;
 begin
-  NomeArquivo := TPath.Combine(ExtractFilePath(ParamStr(0)), 'WPPCloudAPI.ini ');
+  NomeArquivo := TPath.Combine(ExtractFilePath(ParamStr(0)), 'EvolutionAPI.ini ');
   ArquivoConfig := TMemIniFile.Create(NomeArquivo);
 
   edtTokenAPI.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'TokenAPI', '');
   edtPHONE_NUMBER_ID.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'PHONE_NUMBER_ID', '');
-  edtPORT_SERVER.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'PORT_SERVER', '8020');
+  edtPORT_SERVER.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'PORT_SERVER', '8080');
+  edtPortWebhook.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'PORT_Webhook', '8020');
   edtDDI_Default.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'DDI_Default', '55');
 
   ArquivoConfig.UpdateFile;
@@ -545,12 +550,13 @@ var
   NomeArquivo: string;
   ArquivoConfig: TCustomIniFile;
 begin
-  NomeArquivo := TPath.Combine(ExtractFilePath(ParamStr(0)), 'WPPCloudAPI.ini ');
+  NomeArquivo := TPath.Combine(ExtractFilePath(ParamStr(0)), 'EvolutionAPI.ini ');
   ArquivoConfig := TMemIniFile.Create(NomeArquivo);
 
   ArquivoConfig.writeString('CONFIGURACAO', 'TokenAPI', edtTokenAPI.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'PHONE_NUMBER_ID', edtPHONE_NUMBER_ID.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'PORT_SERVER', edtPORT_SERVER.Text);
+  ArquivoConfig.writeString('CONFIGURACAO', 'PORT_Webhook', edtPORT_SERVER.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'DDI_Default', edtDDI_Default.Text);
 
   ArquivoConfig.UpdateFile;

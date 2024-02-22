@@ -44,6 +44,7 @@ type
     FurlWebhook: string;
     Fqrcode: Boolean;
     FurlServer: string;
+    FPortWebhook: Integer;
     function CaractersWeb(vText: string): string;
 
   protected
@@ -84,7 +85,8 @@ type
     property webhook_by_events : Boolean                 read Fwebhook_by_events  write Fwebhook_by_events;
     property qrcode            : Boolean                 read Fqrcode             write Fqrcode;
     property urlServer         : string                  read FurlServer          write FurlServer;
-    property Port              : Integer                 read FPort               write FPort               Default 8020;
+    property Port              : Integer                 read FPort               write FPort               Default 8080;
+    property PortWebhook       : Integer                 read FPortWebhook        write FPortWebhook        Default 8020;
     property DDIDefault        : Integer                 read FDDIDefault         write FDDIDefault         Default 55;
 
     property OnRetSendMessage  : TOnRetSendMessage       read FOnRetSendMessage   write FOnRetSendMessage;
@@ -1185,11 +1187,11 @@ begin
       end
     );
 
-  if Port = 0 then
-    Port := 8020;
+  if PortWebhook = 0 then
+    PortWebhook := 8020;
 
   THorse.MaxConnections := 500;
-  THorse.Port := Port;
+  THorse.Port := PortWebhook;
   THorse.Listen;
 end;
 

@@ -52,9 +52,9 @@ object frmPrincipal: TfrmPrincipal
   object Label6: TLabel
     Left = 18
     Top = 102
-    Width = 78
+    Width = 56
     Height = 13
-    Caption = 'PORT SERVER:'
+    Caption = 'PORT API:'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -63,7 +63,7 @@ object frmPrincipal: TfrmPrincipal
     ParentFont = False
   end
   object Label7: TLabel
-    Left = 146
+    Left = 193
     Top = 102
     Width = 76
     Height = 13
@@ -3785,6 +3785,19 @@ object frmPrincipal: TfrmPrincipal
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Label4: TLabel
+    Left = 97
+    Top = 102
+    Width = 89
+    Height = 13
+    Caption = 'PORT Webhook:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object edtTokenAPI: TEdit
     Left = 16
     Top = 33
@@ -4244,16 +4257,23 @@ object frmPrincipal: TfrmPrincipal
   object edtPORT_SERVER: TEdit
     Left = 16
     Top = 117
-    Width = 114
+    Width = 69
     Height = 21
     TabOrder = 6
   end
   object edtDDI_Default: TEdit
-    Left = 144
+    Left = 191
     Top = 117
-    Width = 114
+    Width = 84
     Height = 21
     TabOrder = 7
+  end
+  object edtPortWebhook: TEdit
+    Left = 95
+    Top = 117
+    Width = 88
+    Height = 21
+    TabOrder = 8
   end
   object ImageList1: TImageList
     DrawingStyle = dsTransparent
@@ -5203,6 +5223,8 @@ object frmPrincipal: TfrmPrincipal
     qrcode = True
     urlServer = 'http://localhost'
     Port = 8010
+    PortWebhook = 0
+    DDIDefault = 0
     OnRetSendMessage = EvolutionAPI1RetSendMessage
     OnResponse = EvolutionAPI1Response
     Left = 454
