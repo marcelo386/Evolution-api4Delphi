@@ -180,6 +180,7 @@ private
   FSticker: TStickerClass;
   FInteractive: TInteractiveClass;
   FReaction: TReactionClass;
+  FmimeType: String;
 public
   property from: String read FFrom write FFrom;
   property id: String read FId write FId;
@@ -195,6 +196,7 @@ public
   property context: TContextClass read FContext write FContext;
   property interactive: TInteractiveClass read FInteractive write FInteractive;
   property reaction: TReactionClass read FReaction write FReaction;
+  property mimeType: String read FmimeType write FmimeType;
 
   constructor Create;
   destructor Destroy; override;

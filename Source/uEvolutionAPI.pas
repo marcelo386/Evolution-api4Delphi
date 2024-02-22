@@ -51,6 +51,8 @@ type
 
   public
     //Individual
+    function CreateInstanceBasic(instanceName, token, number: string; qrcode: Boolean): string;
+    function CreateInstanceWithWebhook(instanceName, token, number, urlWebhook, eventos: string; qrcode, webhook_by_events: Boolean): string;
     function SendText(waid, body: string; previewurl: string = 'false'): string;
     function SendFile(waid, body, typeFile, url: string; const filename: string = ''): string;
     function SendButton(waid, body, actions, header, footer: string): string;
@@ -81,12 +83,8 @@ type
     property urlWebhook        : string                  read FurlWebhook         write FurlWebhook;
     property webhook_by_events : Boolean                 read Fwebhook_by_events  write Fwebhook_by_events;
     property qrcode            : Boolean                 read Fqrcode             write Fqrcode;
-
     property urlServer         : string                  read FurlServer          write FurlServer;
-
-
     property Port              : Integer                 read FPort               write FPort               Default 8020;
-
     property DDIDefault        : Integer                 read FDDIDefault         write FDDIDefault         Default 55;
 
     property OnRetSendMessage  : TOnRetSendMessage       read FOnRetSendMessage   write FOnRetSendMessage;
@@ -124,6 +122,130 @@ begin
   vText  := StringReplace(vText, #$A       ,' \n'   , [rfReplaceAll] );
   vText  := StringReplace(vText, #$A#$A    ,' \n'   , [rfReplaceAll] );
   Result := vText;
+end;
+
+function TEvolutionAPI.CreateInstanceBasic(instanceName, token, number: string; qrcode: Boolean): string;
+var
+  response: string;
+  json: string;
+  MessagePayload: uRetMensagem.TMessagePayload;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+
+    json :=
+      '{' +
+      '  "instanceName": "' + instanceName + '", ' +
+      '  "token": "' + token + '", ' +
+      '  "qrcode": true, ' +
+      '  "number": "' + number + '"  ' +
+      '}';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/instance/create')
+        .ContentType('application/json')
+        //.TokenBearer(Token)
+        .AddHeader('apikey', token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //MessagePayload := TMessagePayload.FromJSON(response);
+      //Result := MessagePayload.Messages[0].ID;
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
+
+end;
+
+function TEvolutionAPI.CreateInstanceWithWebhook(instanceName, token, number, urlWebhook, eventos: string; qrcode, webhook_by_events: Boolean): string;
+var
+  response: string;
+  json: string;
+  MessagePayload: uRetMensagem.TMessagePayload;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+
+    json :=
+      '{' +
+      '  "instanceName": "' + instanceName + '", ' +
+      '  "token": "' + token + '", ' +
+      '  "qrcode": true, ' +
+      '  "webhook": "' + urlWebhook + '", ' +
+      '  "webhook_by_events": true, ' +
+      '  "events": [' + eventos + '], '+
+      '  "number": "' + number + '"  ' +
+      '}';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/instance/create')
+        .ContentType('application/json')
+        //.TokenBearer(Token)
+        .AddHeader('apikey', token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //MessagePayload := TMessagePayload.FromJSON(response);
+      //Result := MessagePayload.Messages[0].ID;
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
 end;
 
 function TEvolutionAPI.DownloadMedia(id, MimeType: string): string;
@@ -554,7 +676,7 @@ begin
 
     body := CaractersWeb(body);
 
-    json :=
+    (*json :=
       '{ ' +
       '  "messaging_product": "whatsapp", ' +
       '  "recipient_type": "individual", ' +
@@ -566,13 +688,26 @@ begin
       IfThen( Trim(body) <> '' ,' ,"caption": "' + body + '"  ', '') +
       IfThen( Trim(filename) <> '' ,' ,"filename": "' + filename + '"  ', '') +
       '    } ' +
-      '}';
+      '}';*)
+    json :=
+      '{ ' +
+      '    "number": ""' + waid + '", ' +
+      '    "options": { ' +
+      '        "delay": 1200, ' +
+      '        "presence": "composing" ' +
+      '    }, ' +
+      '    "mediaMessage": { ' +
+      '        "mediatype": "' + typeFile + '", ' +
+      IfThen( Trim(body) <> '' ,'        ,"caption": "' + body + '"  ', '') +
+      '        "media": "' + url + '" ' +
+      '    } ' +
+      '} ';
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendMedia/' + instanceName + '')
         .ContentType('application/json')
-        .TokenBearer(Token)
+        //.TokenBearer(Token)
         .AddBody(UTF8Texto)
         .Post
         .Content;
@@ -595,8 +730,9 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      MessagePayload := TMessagePayload.FromJSON(response);
-      Result := MessagePayload.Messages[0].ID;
+      //MessagePayload := TMessagePayload.FromJSON(response);
+      //Result := MessagePayload.Messages[0].ID;
+      Result := Response;
     except
       on E: Exception do
       begin
@@ -975,22 +1111,23 @@ begin
 
     json :=
       '{ ' +
-      '  "messaging_product": "whatsapp", ' +
-      '  "recipient_type": "individual", ' +
-      '  "to": "' + waid + '", ' +
-      '  "type": "text", ' +
-      '  "text": {  ' + // the text object
-      '    "preview_url": ' + previewurl + ',  ' +
-      '    "body": "' + body + '"  ' +
+      '    "number": "' + waid + '", ' +
+      '    "options": { ' +
+      '        "delay": 1200, ' +
+      '        "presence": "composing", ' +
+      '        "linkPreview": ' + previewurl +  ' ' +
+      '    }, ' +
+      '    "textMessage": { ' +
+      '        "text": "' + body + '" ' +
       '    } ' +
-      '}';
+      '} ';
 
     UTF8Texto := UTF8Encode(json);
 
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/' + instanceName + '/messages')
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName + '')
         .ContentType('application/json')
-        .TokenBearer(Token)
+        //.TokenBearer(Token)
         .AddBody(UTF8Texto)
         .Post
         .Content;
@@ -1010,8 +1147,9 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      MessagePayload := TMessagePayload.FromJSON(response);
-      Result := MessagePayload.Messages[0].ID;
+      //MessagePayload := TMessagePayload.FromJSON(response);
+      //Result := MessagePayload.Messages[0].ID;
+      Result := Response;
     except
       on E: Exception do
       begin
