@@ -61,8 +61,9 @@ type
     function SendContact(waid, phoneNumber, formatted_name, options: string): string;
     function SendLocation(waid, body, Location, header, footer: string): string;
     function SendReaction(waid, message_id, emoji: string): string;
-    function SendReplies(waid, message_id, reply_body: string; previewurl: string = 'false'): string;
-    function MarkIsRead(waid, message_id: string): string;
+    function SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string = 'false'): string;
+    function MarkIsRead(waid, message_id, fromMe: string): string;
+    function DeleteMessage(waid, message_id, fromMe, paticipant: string): string;
 
     function UploadMedia(FileName: string): string;
     function PostMediaFile(FileName, MediaType: string): string;
@@ -130,7 +131,7 @@ function TEvolutionAPI.CreateInstanceBasic(instanceName, token, number: string; 
 var
   response: string;
   json: string;
-  MessagePayload: uRetMensagem.TMessagePayload;
+  RetEnvMensagem: uRetMensagem.TRetCreateInstanceClass;
   UTF8Texto: UTF8String;
 begin
   Result := '';
@@ -149,7 +150,6 @@ begin
     try
       response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/instance/create')
         .ContentType('application/json')
-        //.TokenBearer(Token)
         .AddHeader('apikey', token)
         .AddBody(UTF8Texto)
         .Post
@@ -170,8 +170,8 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      //MessagePayload := TMessagePayload.FromJSON(response);
-      //Result := MessagePayload.Messages[0].ID;
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJSON(response);
+      //Result := RetEnvMensagem.key.id;
       Result := Response;
     except
       on E: Exception do
@@ -191,7 +191,7 @@ function TEvolutionAPI.CreateInstanceWithWebhook(instanceName, token, number, ur
 var
   response: string;
   json: string;
-  MessagePayload: uRetMensagem.TMessagePayload;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
   UTF8Texto: UTF8String;
 begin
   Result := '';
@@ -213,7 +213,6 @@ begin
     try
       response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/instance/create')
         .ContentType('application/json')
-        //.TokenBearer(Token)
         .AddHeader('apikey', token)
         .AddBody(UTF8Texto)
         .Post
@@ -234,8 +233,8 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      //MessagePayload := TMessagePayload.FromJSON(response);
-      //Result := MessagePayload.Messages[0].ID;
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
       Result := Response;
     except
       on E: Exception do
@@ -246,6 +245,69 @@ begin
     end;
 
   finally
+  end;
+
+end;
+
+function TEvolutionAPI.DeleteMessage(waid, message_id, fromMe, paticipant: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+
+  try
+    if (length(waid) = 11) or (length(waid) = 10) then
+      waid := DDIDefault.ToString + waid;
+
+    json :=
+      '{ ' +
+      '  "id": "' + message_id + '", ' +
+      '  "remoteJid": "' + waid + '", ' +
+      '  "fromMe": true, ' +
+        // optional
+      '  "paticipant": "' + paticipant + '" ' +
+      '} ';
+
+
+    UTF8Texto := UTF8Encode(json);
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak + json + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, 'EMOJI: ' + Response);
+
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+
   end;
 
 end;
@@ -283,7 +345,7 @@ begin
     try
       response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + id + '')
         .ContentType('application/json')
-        .TokenBearer(Token)
+        .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
         .Get
         .Content;
@@ -336,7 +398,7 @@ begin
         //.ContentType('application/json')
         .ContentType(MimeType)
         //.AcceptEncoding('UTF8')
-        .TokenBearer(Token)
+        .AddHeader('ApiKey', Token)
         .Get
         .ContentStream;
     except
@@ -392,31 +454,35 @@ begin
 
 end;
 
-function TEvolutionAPI.MarkIsRead(waid, message_id: string): string;
+function TEvolutionAPI.MarkIsRead(waid, message_id, fromMe: string): string;
 var
   response: string;
   json: string;
   UTF8Texto: UTF8String;
-  MessagePayload: uRetMensagem.TMessagePayload;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
 begin
   Result := '';
   try
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
-    json :=
-      '{ ' +
-      '  "messaging_product": "whatsapp", ' +
-      '  "status": "read", ' +
-      '  "message_id": "' + message_id + '" ' +
-      '}';
+      json :=
+        '{ ' +
+        '  "read_messages": [ ' +
+        '    { ' +
+        '      "remoteJid": "' + waid + '", ' +
+        '      "fromMe": false, ' +
+        '      "id": "' + message_id + '" ' +
+        '    } ' +
+        '  ] ' +
+        '} ';
 
     UTF8Texto := UTF8Encode(json);
 
     try
       response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
         .ContentType('application/json')
-        .TokenBearer(Token)
+        .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
         .Post
         .Content;
@@ -445,7 +511,7 @@ var
   response: string;
   json: string;
   UTF8Texto: UTF8String;
-  MessagePayload: uRetMensagem.TMessagePayload;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
 begin
   Result := '';
   try
@@ -508,7 +574,7 @@ begin
     try
       response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
         .ContentType('application/json')
-        .TokenBearer(Token)
+        .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
         .Post
         .Content;
@@ -528,8 +594,8 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      MessagePayload := TMessagePayload.FromJSON(response);
-      Result := MessagePayload.Messages[0].ID;
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
     except
       on E: Exception do
       begin
@@ -551,83 +617,52 @@ var
   postData: TStringStream;
   response: string;
   json: string;
-  MessagePayload: uRetMensagem.TMessagePayload;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
   UTF8Texto: UTF8String;
 begin
   Result := '';
   try
-
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
-    //body := CaractersWeb(body);
-
     json :=
       '{ ' +
-      '  "messaging_product": "whatsapp", ' +
-      '  "recipient_type": "individual", ' +
-      '  "to": "' + waid + '", ' +
-      '  "type": "contacts", ' +
-      '  "contacts": [{  ' +
-      '    "addresses": [{ ' +
-      '        "street": "STREET", ' +
-      '        "city": "VOTUPORANGA", ' +
-      '        "state": "SP", ' +
-      '        "zip": "", ' +
-      '        "country": "", ' +
-      '        "country_code": "55", ' +
-      '        "type": "HOME" ' +
-      '      }, ' +
-      '      { ' +
-      '        "street": "STREET", ' +
-      '        "city": "CITY", ' +
-      '        "state": "STATE", ' +
-      '        "zip": "ZIP", ' +
-      '        "country": "COUNTRY", ' +
-      '        "country_code": "55", ' +
-      '        "type": "WORK" ' +
-      '      }], ' +
-      '    "birthday": "", ' +
-      '    "emails": [{ ' +
-      '        "email": "", ' +
-      '        "type": "WORK" ' +
-      '      }, ' +
-      '      { ' +
-      '        "email": "", ' +
-      '        "type": "HOME" ' +
-      '      }], ' +
-      '    "name": { ' +
-      '      "formatted_name": "' + formatted_name + '", ' +
-      '      "first_name": "' + formatted_name + '", ' +
-      '      "last_name": "", ' +
-      '      "middle_name": "", ' +
-      '      "suffix": "", ' +
-      '      "prefix": "" ' +
+      '    "number": "' + waid + '", ' +
+      '    "options": { ' +
+      '        "delay": 1200, ' +
+      '        "presence": "composing" ' +
       '    }, ' +
-      '    "org": { ' +
-      '      "company": "", ' +
-      '      "department": "", ' +
-      '      "title": "" ' +
-      '    }, ' +
-      '    "phones": [{ ' +
-      '       "phone": "' + phoneNumber + '", ' +
-      '       "type": "HOME", ' +
-      '       "wa_id": "' + phoneNumber + '" ' +
-      '     } ' +
-      //'     { ' +
-      //'       "phone": "PHONE_NUMBER", ' +
-      //'       "type": "WORK", ' +
-      //'       "wa_id": "PHONE_OR_WA_ID" ' +
-      '      ] ' +
-      '  }] ' +
-      '}';
+      '    "contactMessage": [ ' +
+      '        { ' +
+      '            "fullName": "' + formatted_name + '", ' +
+      '            "wuid": "' + phoneNumber + '", ' +
+      '            "phoneNumber": "' + phoneNumber + '" ' +
+      //'            "organization": "Company Name", /* Optional */ ' +
+      //'            "email": "email", /* Optional */ ' +
+      //'            "url": "url page" /* Optional */ ' +
+      '        } ' +
+      '    ] ' +
+      '} ';
+
+      (*
+      '        }, ' +
+      '        { ' +
+      '            "fullName": "Contact Name", ' +
+      '            "wuid": "559911111111", ' +
+      '            "phoneNumber": "+55 99 9 1111-1111", ' +
+      '            "organization": "Company Name", /* Optional */ ' +
+      '            "email": "email", /* Optional */ ' +
+      '            "url": "url page" /* Optional */ ' +
+      '        } ' +
+      '    ] ' +
+      '} ';*)
 
     UTF8Texto := UTF8Encode(json);
     try
 
       response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
         .ContentType('application/json')
-        .TokenBearer(Token)
+        .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
         .Post
         .Content;
@@ -649,8 +684,8 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      MessagePayload := TMessagePayload.FromJSON(response);
-      Result := MessagePayload.Messages[0].ID;
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
     except
       on E: Exception do
       begin
@@ -669,7 +704,7 @@ var
   response: string;
   json: string;
   UTF8Texto: UTF8String;
-  MessagePayload: uRetMensagem.TMessagePayload;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
 begin
   Result := '';
   try
@@ -709,7 +744,7 @@ begin
     try
       response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendMedia/' + instanceName + '')
         .ContentType('application/json')
-        //.TokenBearer(Token)
+        .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
         .Post
         .Content;
@@ -732,9 +767,9 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      //MessagePayload := TMessagePayload.FromJSON(response);
-      //Result := MessagePayload.Messages[0].ID;
-      Result := Response;
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
+      //Result := Response;
     except
       on E: Exception do
       begin
@@ -757,7 +792,7 @@ var
   response: string;
   json: string;
   UTF8Texto: UTF8String;
-  MessagePayload: uRetMensagem.TMessagePayload;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
 begin
   Result := '';
   try
@@ -840,7 +875,7 @@ begin
 
       response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
         .ContentType('application/json')
-        .TokenBearer(Token)
+        .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
         .Post
         .Content;
@@ -861,8 +896,8 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      MessagePayload := TMessagePayload.FromJSON(response);
-      Result := MessagePayload.Messages[0].ID;
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
     except
       on E: Exception do
       begin
@@ -882,7 +917,7 @@ var
   response: string;
   json: string;
   UTF8Texto: UTF8String;
-  MessagePayload: uRetMensagem.TMessagePayload;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
 begin
   Result := '';
 
@@ -926,7 +961,7 @@ begin
 
       response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
         .ContentType('application/json')
-        .TokenBearer(Token)
+        .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
         .Post
         .Content;
@@ -945,8 +980,8 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      MessagePayload := TMessagePayload.FromJSON(response);
-      Result := MessagePayload.Messages[0].ID;
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
     except
       on E: Exception do
       begin
@@ -965,7 +1000,7 @@ var
   response: string;
   json: string;
   UTF8Texto: UTF8String;
-  MessagePayload: uRetMensagem.TMessagePayload;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
 begin
   Result := '';
 
@@ -986,11 +1021,12 @@ begin
       '  } ' +
       '}';
 
+
     UTF8Texto := UTF8Encode(json);
     try
       response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
         .ContentType('application/json')
-        .TokenBearer(Token)
+        .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
         .Post
         .Content;
@@ -1009,8 +1045,8 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, 'EMOJI: ' + Response);
 
-      MessagePayload := TMessagePayload.FromJSON(response);
-      Result := MessagePayload.Messages[0].ID;
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
     except
       on E: Exception do
       begin
@@ -1025,18 +1061,16 @@ begin
 
 end;
 
-function TEvolutionAPI.SendReplies(waid, message_id, reply_body: string; previewurl: string): string;
+function TEvolutionAPI.SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string): string;
 var
   response: string;
   json: string;
-  MessagePayload: uRetMensagem.TMessagePayload;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
   UTF8Texto: UTF8String;
 begin
   Result := '';
 
   try
-
-
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
@@ -1044,6 +1078,28 @@ begin
 
     json :=
       '{ ' +
+      '    "number": "' + waid + '", ' +
+      '    "options": { ' +
+      '        "delay": 1200, ' +
+      '        "presence": "composing", ' +
+      '        "quoted": { ' +
+      '            "key": { ' +
+      '                "remoteJid": "' + reply_remoteJid + '@s.whatsapp.net", ' +
+      '                "fromMe": true, ' +
+      '                "id": "' + message_id + '", ' +
+      '                "participant": "" ' +
+      '            }, ' +
+      '            "message": { ' +
+      '                "conversation": "' + message_body + '" ' +
+      '            } ' +
+      '        } ' +
+      '    }, ' +
+      '    "textMessage": { ' +
+      '        "text": "' + reply_body + '" ' +
+      '    } ' +
+      '}';
+
+      (*'{ ' +
       '  "messaging_product": "whatsapp", ' +
       '   "context": { ' +
       '     "message_id": "' + message_id + '" ' +
@@ -1054,14 +1110,14 @@ begin
       '    "preview_url": ' + previewurl + ',  ' +
       '    "body": "' + reply_body + '"  ' +
       '    } ' +
-      '}';
+      '}';*)
 
     UTF8Texto := UTF8Encode(json);
 
     try
       response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
         .ContentType('application/json')
-        .TokenBearer(Token)
+        .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
         .Post
         .Content;
@@ -1081,8 +1137,8 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      MessagePayload := TMessagePayload.FromJSON(response);
-      Result := MessagePayload.Messages[0].ID;
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
     except
       on E: Exception do
       begin
@@ -1101,7 +1157,8 @@ function TEvolutionAPI.SendText(waid, body, previewurl: string): string;
 var
   response: string;
   json: string;
-  MessagePayload: uRetMensagem.TMessagePayload;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  url: string;
   UTF8Texto: UTF8String;
 begin
   Result := '';
@@ -1126,10 +1183,12 @@ begin
 
     UTF8Texto := UTF8Encode(json);
 
+    url := urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName;
+
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName + '')
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName)
         .ContentType('application/json')
-        //.TokenBearer(Token)
+        .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
         .Post
         .Content;
@@ -1137,9 +1196,9 @@ begin
     except
       on E: Exception do
       begin
-        //
+
         //gravar_log('ERROR ' + e.Message + SLINEBREAK);
-        Result := 'Error: ' + e.Message;
+        Result := 'Error: ' + e.Message + ' url: ' + url + ' json: ' + json;
         Exit;
       end;
     end;
@@ -1149,21 +1208,18 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      //MessagePayload := TMessagePayload.FromJSON(response);
-      //Result := MessagePayload.Messages[0].ID;
-      Result := Response;
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
+
+      //Result := Response;
     except
       on E: Exception do
       begin
-        Result := 'Error: ' + e.Message;
+        Result := 'Error: ' + e.Message  + ' url:' + url;
         Exit;
       end;
     end;
 
-    //MemoLogApiOficial.Lines.Add(response);
-    //MemoLogApiOficial.Lines.Add('');
-    //MemoLogApiOficial.Lines.Add('Unique id: ' + MessagePayload.Messages[0].ID);
-    //gravar_log('Unique id: ' + MessagePayload.Messages[0].ID);
   finally
   end;
 
@@ -1271,7 +1327,7 @@ var
   postData: TStringStream;
   response, json, media_id: string;
   Retorno: IResponse;
-  MessagePayload: uRetMensagem.TMessagePayload;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
   UTF8Texto: UTF8String;
   Stream: TFileStream;
   //Buffer: TBytes;
@@ -1340,7 +1396,7 @@ begin
               response := TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/media')
                 //.ContentType('multipart/form-data')
                 //.ContentType('application/json')
-                .TokenBearer(Token)
+                .AddHeader('ApiKey', Token)
                 .AddParam('messaging_product', 'whatsapp')
                 .AddParam('type', 'application/pdf')
                 .AddParam('file', FileName)
@@ -1365,8 +1421,8 @@ begin
 
             if Assigned(FOnRetSendMessage) then
               FOnRetSendMessage(Self, Response);
-            //MessagePayload := TMessagePayload.FromJSON(response);
-            //Result := MessagePayload.Messages[0].ID;
+            //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+            //Result := RetEnvMensagem.key.id;
             Result := response;
 
           finally

@@ -21,7 +21,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, System.ImageList, Vcl.ImgList, uWPPCloudAPI,
-  uWhatsAppBusinessClasses, IniFiles, System.IOUtils, Vcl.Buttons, Vcl.Imaging.pngimage, uEvolutionAPI;
+  uWhatsAppBusinessClasses, IniFiles, System.IOUtils, Vcl.Buttons, Vcl.Imaging.pngimage, System.NetEncoding, uEvolutionAPI;
 
 type
   TfrmPrincipal = class(TForm)
@@ -79,6 +79,11 @@ type
     EvolutionAPI1: TEvolutionAPI;
     Label4: TLabel;
     edtPortWebhook: TEdit;
+    Image3: TImage;
+    bCreateInstanceBasic: TBitBtn;
+    edtRemoteJidQuoted: TLabeledEdit;
+    mem_Quoted_message: TMemo;
+    Label9: TLabel;
     procedure btnTextoSimplesClick(Sender: TObject);
     procedure btnBotaoSimplesClick(Sender: TObject);
     procedure btnListaMenuClick(Sender: TObject);
@@ -98,7 +103,11 @@ type
 
     procedure EvolutionAPI1Response(Sender: TObject; Response: string);
     procedure EvolutionAPI1RetSendMessage(Sender: TObject; Response: string);
+    procedure bCreateInstanceBasicClick(Sender: TObject);
+
   private
+    procedure CarregarImagemBase64(const Base64Str: string; const Image: TImage);
+    procedure ProcessQRCodeImage;
     { Private declarations }
   public
     { Public declarations }
@@ -111,6 +120,47 @@ var
 implementation
 
 {$R *.dfm}
+
+uses uRetMensagem;
+
+procedure TfrmPrincipal.bCreateInstanceBasicClick(Sender: TObject);
+var
+  RetCreateInstance: uRetMensagem.TRetCreateInstanceClass;
+  Base64QrCode: TStringList;
+begin
+  if Trim(edtTokenAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE TOKEN API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtPHONE_NUMBER_ID.Text) = '' then
+  begin
+    ShowMessage('INFORM THE "INSTANCE NAME " ');
+    edtPHONE_NUMBER_ID.SetFocus;
+    Exit;
+  end;
+
+
+  EvolutionAPI1.urlServer := 'http://localhost';
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  sResponse := EvolutionAPI1.CreateInstanceBasic(edtPHONE_NUMBER_ID.Text, edtTokenAPI.Text, '', true);
+
+  RetCreateInstance := TRetCreateInstanceClass.FromJsonString(sResponse);
+  CarregarImagemBase64(RetCreateInstance.qrcode.base64, Image3);
+
+  {try
+    Base64QrCode := TStringList.Create(nil);
+    Base64QrCode.Text := RetCreateInstance.qrcode.base64;
+  finally
+    Base64QrCode.Free;
+  end;}
+
+
+  memResponse.Lines.Add(sResponse);
+end;
 
 procedure TfrmPrincipal.BitBtn1Click(Sender: TObject);
 begin
@@ -479,7 +529,8 @@ begin
   //SendReaction(waid, message_id, emoji: string)
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
-  sResponse := EvolutionAPI1.SendReplies(ed_num.Text, edtMessage_id.Text, mem_message.Text);
+  //function TEvolutionAPI.SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string): string;
+  sResponse := EvolutionAPI1.SendReplies(ed_num.Text, edtMessage_id.Text, mem_message.Text, edtRemoteJidQuoted.Text, mem_Quoted_message.Text, 'true', 'false');
 
   memResponse.Lines.Add(sResponse);
 end;
@@ -545,6 +596,11 @@ begin
 
 end;
 
+procedure TfrmPrincipal.ProcessQRCodeImage;
+begin
+
+end;
+
 procedure TfrmPrincipal.SalvarIni;
 var
   NomeArquivo: string;
@@ -556,7 +612,7 @@ begin
   ArquivoConfig.writeString('CONFIGURACAO', 'TokenAPI', edtTokenAPI.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'PHONE_NUMBER_ID', edtPHONE_NUMBER_ID.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'PORT_SERVER', edtPORT_SERVER.Text);
-  ArquivoConfig.writeString('CONFIGURACAO', 'PORT_Webhook', edtPORT_SERVER.Text);
+  ArquivoConfig.writeString('CONFIGURACAO', 'PORT_Webhook', edtPortWebhook.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'DDI_Default', edtDDI_Default.Text);
 
   ArquivoConfig.UpdateFile;
@@ -640,5 +696,77 @@ procedure TfrmPrincipal.EvolutionAPI1RetSendMessage(Sender: TObject; Response: s
 begin
   memResponse.Lines.Add(Response);
 end;
+
+procedure TfrmPrincipal.CarregarImagemBase64(const Base64Str: string; const Image: TImage);
+var
+  Stream: TMemoryStream;
+  Decoder: TBase64Encoding;
+begin
+  Stream := TMemoryStream.Create;
+  Decoder := TBase64Encoding.Create;
+  try
+    try
+      // Decodifica a string Base64 para um array de bytes
+      Stream.WriteBuffer(Decoder.DecodeStringToBytes(Base64Str), Length(Base64Str) div 2);
+      // Posiciona o ponteiro do fluxo no início
+      Stream.Position := 0;
+      // Carrega o fluxo de memória no componente TImage
+      Image.Picture.Bitmap.LoadFromStream(Stream);
+    except
+      on E: Exception do
+        ShowMessage('Erro ao carregar imagem: ' + E.Message);
+    end;
+  finally
+    Stream.Free;
+    Decoder.Free;
+  end;
+end;
+
+{procedure TfrmPrincipal.CarregarImagemBase64(const Base64Str: string; const Image: TImage);
+const
+  MaxLineLength = 76; // Tamanho máximo de linha para quebrar a string Base64
+var
+  Stream: TMemoryStream;
+  Decoder: TBase64Encoding;
+  Base64List: TStringList;
+  Base64Part: string;
+begin
+  Stream := TMemoryStream.Create;
+  Decoder := TBase64Encoding.Create;
+  Base64List := TStringList.Create;
+  try
+    try
+      // Divida a string Base64 em partes para evitar estouro de memória
+      while Length(Base64Str) > MaxLineLength do
+      begin
+        Base64Part := Copy(Base64Str, 1, MaxLineLength);
+        Base64List.Add(Base64Part);
+        Delete(Base64Str, 1, MaxLineLength);
+      end;
+      if Length(Base64Str) > 0 then
+        Base64List.Add(Base64Str);
+
+      // Decodifica cada parte e escreve no fluxo de memória
+      for Base64Part in Base64List do
+        Stream.WriteBuffer(Decoder.DecodeStringToBytes(Base64Part)^, Length(Base64Part) div 2);
+
+      // Posiciona o ponteiro do fluxo no início
+      Stream.Position := 0;
+
+      // Carrega o fluxo de memória no componente TImage
+      Image.Picture.Bitmap.LoadFromStream(Stream);
+    except
+      on E: Exception do
+        ShowMessage('Erro ao carregar imagem: ' + E.Message);
+    end;
+  finally
+    Stream.Free;
+    Decoder.Free;
+    Base64List.Free;
+  end;
+end;}
+
+
+
 
 end.

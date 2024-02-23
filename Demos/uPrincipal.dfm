@@ -1,7 +1,7 @@
 object frmPrincipal: TfrmPrincipal
   Left = 0
   Top = 0
-  Caption = 'Principal'
+  Caption = 'EvolutionAPI 4Delphi Demo'
   ClientHeight = 705
   ClientWidth = 1008
   Color = clWhite
@@ -14,11 +14,14 @@ object frmPrincipal: TfrmPrincipal
   Position = poScreenCenter
   OnCreate = FormCreate
   OnShow = FormShow
+  DesignSize = (
+    1008
+    705)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Left = 18
-    Top = 18
+    Top = 8
     Width = 47
     Height = 13
     Caption = 'Key API:'
@@ -30,15 +33,15 @@ object frmPrincipal: TfrmPrincipal
     ParentFont = False
   end
   object Label3: TLabel
-    Left = 18
-    Top = 161
+    Left = 16
+    Top = 261
     Width = 51
     Height = 13
     Caption = 'Response:'
   end
   object Label5: TLabel
     Left = 18
-    Top = 59
+    Top = 49
     Width = 88
     Height = 13
     Caption = 'Instence Name:'
@@ -51,7 +54,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object Label6: TLabel
     Left = 18
-    Top = 102
+    Top = 92
     Width = 56
     Height = 13
     Caption = 'PORT API:'
@@ -64,7 +67,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object Label7: TLabel
     Left = 193
-    Top = 102
+    Top = 92
     Width = 76
     Height = 13
     Caption = 'DDI DEFAULT:'
@@ -76,8 +79,8 @@ object frmPrincipal: TfrmPrincipal
     ParentFont = False
   end
   object Image2: TImage
-    Left = 18
-    Top = 416
+    Left = 16
+    Top = 496
     Width = 343
     Height = 200
     Center = True
@@ -3773,8 +3776,8 @@ object frmPrincipal: TfrmPrincipal
     Stretch = True
   end
   object Label8: TLabel
-    Left = 124
-    Top = 377
+    Left = 90
+    Top = 457
     Width = 185
     Height = 33
     Caption = 'Evolution API'
@@ -3787,7 +3790,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object Label4: TLabel
     Left = 97
-    Top = 102
+    Top = 92
     Width = 89
     Height = 13
     Caption = 'PORT Webhook:'
@@ -3798,9 +3801,17 @@ object frmPrincipal: TfrmPrincipal
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Image3: TImage
+    Left = 70
+    Top = 134
+    Width = 140
+    Height = 140
+    Anchors = [akTop, akRight]
+    Proportional = True
+  end
   object edtTokenAPI: TEdit
     Left = 16
-    Top = 33
+    Top = 23
     Width = 345
     Height = 21
     Font.Charset = DEFAULT_CHARSET
@@ -3824,6 +3835,13 @@ object frmPrincipal: TfrmPrincipal
       Width = 73
       Height = 13
       Caption = 'Body Message:'
+    end
+    object Label9: TLabel
+      Left = 227
+      Top = 107
+      Width = 85
+      Height = 13
+      Caption = 'Quoted Message:'
     end
     object ed_num: TLabeledEdit
       Left = 12
@@ -3957,7 +3975,7 @@ object frmPrincipal: TfrmPrincipal
     end
     object edtNameContactShared: TLabeledEdit
       Left = 227
-      Top = 77
+      Top = 66
       Width = 144
       Height = 21
       EditLabel.Width = 139
@@ -3968,7 +3986,7 @@ object frmPrincipal: TfrmPrincipal
     object edtMessage_id: TLabeledEdit
       Left = 12
       Top = 262
-      Width = 214
+      Width = 205
       Height = 21
       EditLabel.Width = 60
       EditLabel.Height = 13
@@ -3977,6 +3995,24 @@ object frmPrincipal: TfrmPrincipal
       Text = 
         'wamid.HBgNNTUxNzk4MTM4ODQxNBUCABIYIDhDN0E4NDlFM0JDRDhFRTgxMUEyMT' +
         'IxODE3QkQ4NDQ2AA=='
+    end
+    object edtRemoteJidQuoted: TLabeledEdit
+      Left = 227
+      Top = 262
+      Width = 144
+      Height = 21
+      EditLabel.Width = 93
+      EditLabel.Height = 13
+      EditLabel.Caption = 'RemoteJid Quoted:'
+      TabOrder = 10
+    end
+    object mem_Quoted_message: TMemo
+      Left = 227
+      Top = 126
+      Width = 144
+      Height = 115
+      ScrollBars = ssVertical
+      TabOrder = 11
     end
   end
   object gbAcoesBasicas: TGroupBox
@@ -4226,22 +4262,22 @@ object frmPrincipal: TfrmPrincipal
     end
   end
   object memResponse: TMemo
-    Left = 18
-    Top = 177
+    Left = 16
+    Top = 277
     Width = 343
     Height = 178
     TabOrder = 3
   end
   object edtPHONE_NUMBER_ID: TEdit
     Left = 16
-    Top = 74
-    Width = 345
+    Top = 64
+    Width = 167
     Height = 21
     TabOrder = 4
   end
   object BitBtn1: TBitBtn
     Left = 286
-    Top = 115
+    Top = 105
     Width = 75
     Height = 25
     Caption = 'Salvar'
@@ -4256,29 +4292,44 @@ object frmPrincipal: TfrmPrincipal
   end
   object edtPORT_SERVER: TEdit
     Left = 16
-    Top = 117
+    Top = 107
     Width = 69
     Height = 21
     TabOrder = 6
   end
   object edtDDI_Default: TEdit
     Left = 191
-    Top = 117
+    Top = 107
     Width = 84
     Height = 21
     TabOrder = 7
   end
   object edtPortWebhook: TEdit
     Left = 95
-    Top = 117
+    Top = 107
     Width = 88
     Height = 21
     TabOrder = 8
   end
+  object bCreateInstanceBasic: TBitBtn
+    Left = 192
+    Top = 61
+    Width = 113
+    Height = 25
+    Caption = 'Create Instance'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 9
+    OnClick = bCreateInstanceBasicClick
+  end
   object ImageList1: TImageList
     DrawingStyle = dsTransparent
-    Left = 231
-    Top = 443
+    Left = 240
+    Top = 523
     Bitmap = {
       494C01011A003000040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000007000000001002000000000000070
