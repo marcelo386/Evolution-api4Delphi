@@ -68,7 +68,7 @@ type
     btnResponder: TButton;
     BitBtn2: TButton;
     OpenDialog1: TOpenDialog;
-    edtPHONE_NUMBER_ID: TEdit;
+    edtInstanceName: TEdit;
     Label5: TLabel;
     BitBtn1: TBitBtn;
     Label6: TLabel;
@@ -90,6 +90,10 @@ type
     bSetWebhook: TBitBtn;
     Label11: TLabel;
     edtEventsSubscribe: TEdit;
+    Label12: TLabel;
+    edtNumberWhatsApp: TEdit;
+    Label13: TLabel;
+    edtUrlServerEvolutionAPI: TEdit;
     procedure btnTextoSimplesClick(Sender: TObject);
     procedure btnBotaoSimplesClick(Sender: TObject);
     procedure btnListaMenuClick(Sender: TObject);
@@ -145,18 +149,20 @@ begin
     Exit;
   end;
 
-  if Trim(edtPHONE_NUMBER_ID.Text) = '' then
+  if Trim(edtInstanceName.Text) = '' then
   begin
     ShowMessage('INFORM THE "INSTANCE NAME " ');
-    edtPHONE_NUMBER_ID.SetFocus;
+    edtInstanceName.SetFocus;
     Exit;
   end;
 
 
   EvolutionAPI1.urlServer := 'http://localhost';
+  EvolutionAPI1.Token := 'B6D711FCDE4D4FD5936544120E713976'; //edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  sResponse := EvolutionAPI1.CreateInstanceBasic(edtInstanceName.Text, edtTokenAPI.Text, edtNumberWhatsApp.Text, true);
+
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
-  sResponse := EvolutionAPI1.CreateInstanceBasic(edtPHONE_NUMBER_ID.Text, edtTokenAPI.Text, '', true);
 
   RetCreateInstance := TRetCreateInstanceClass.FromJsonString(sResponse);
   CarregarImagemBase64(RetCreateInstance.qrcode.base64, Image3);
@@ -195,7 +201,7 @@ begin
 
   //SendReaction(waid, message_id, emoji: string)
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.MarkIsRead(ed_num.Text, edtMessage_id.Text, 'false');
 
   memResponse.Lines.Add(sResponse);
@@ -219,7 +225,7 @@ begin
 
   EvolutionAPI1.urlServer := 'http://localhost';
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SetWebhook(edtURLWebhook.Text, edtEventsSubscribe.Text, True, False);
 
   memResponse.Lines.Add(sResponse);
@@ -285,7 +291,7 @@ begin
     FileName := '';
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
 
   if Type_File = 'document' then
     sResponse := EvolutionAPI1.SendFileBase64(ed_num.Text, mem_message.Text, Type_File, LBase64, FileName)
@@ -324,7 +330,7 @@ begin
   end;
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SendFile(ed_num.Text, mem_message.Text, 'image', edtURL.Text);
 
   //sResponse := EvolutionAPI1.SendFile(ed_num.Text, mem_message.Text, 'document', 'https://we.tl/t-Xy3U9kbKUH');
@@ -373,7 +379,7 @@ begin
 
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SendButton(ed_num.Text, mem_message.Text, sAction, edtHeader.Text, edtFooter.Text);
 
   memResponse.Lines.Add(sResponse);
@@ -396,7 +402,7 @@ begin
   end;
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SendContact(ed_num.Text, edtNumberShared.Text, edtNameContactShared.Text, '');
 
 end;
@@ -424,7 +430,7 @@ begin
   end;
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SendFile(ed_num.Text, mem_message.Text, 'image', edtURL.Text);
 
   //sResponse := EvolutionAPI1.SendFile(ed_num.Text, mem_message.Text, 'document', 'https://we.tl/t-Xy3U9kbKUH');
@@ -454,7 +460,7 @@ begin
   end;
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SendText(ed_num.Text, edtURL.Text, 'true');
 
   memResponse.Lines.Add(sResponse);
@@ -524,7 +530,7 @@ begin
 
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SendListMenu(ed_num.Text, mem_message.Text, sSections, edtHeader.Text, edtFooter.Text, edtButtonText.Text);
 
   memResponse.Lines.Add(sResponse);
@@ -550,7 +556,7 @@ begin
       '    } ';
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SendLocation(ed_num.Text, mem_message.Text, sLocation, edtHeader.Text, edtFooter.Text);
 
   memResponse.Lines.Add(sResponse);
@@ -578,7 +584,7 @@ begin
 
   //SendReaction(waid, message_id, emoji: string)
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SendReaction(ed_num.Text, edtMessage_id.Text, sEmoji);
 
   memResponse.Lines.Add(sResponse);
@@ -610,7 +616,7 @@ begin
 
   //SendReaction(waid, message_id, emoji: string)
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   //function TEvolutionAPI.SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string): string;
   sResponse := EvolutionAPI1.SendReplies(ed_num.Text, edtMessage_id.Text, mem_message.Text, edtRemoteJidQuoted.Text, mem_Quoted_message.Text, 'true', 'false');
 
@@ -640,7 +646,7 @@ begin
   end;
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SendText(ed_num.Text, mem_message.Text);
 
   memResponse.Lines.Add(sResponse);
@@ -657,7 +663,7 @@ end;
 procedure TfrmPrincipal.FormShow(Sender: TObject);
 begin
   EvolutionAPI1.Token := edtTokenAPI.Text;
-  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
   EvolutionAPI1.DDIDefault := StrToIntDef(edtDDI_Default.Text, 55);
   EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
   EvolutionAPI1.PortWebhook := StrToIntDef(edtPortWebhook.Text, 8020);
@@ -673,10 +679,11 @@ begin
   ArquivoConfig := TMemIniFile.Create(NomeArquivo);
 
   edtTokenAPI.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'TokenAPI', '');
-  edtPHONE_NUMBER_ID.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'PHONE_NUMBER_ID', '');
+  edtInstanceName.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'InstanceName', '');
   edtPORT_SERVER.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'PORT_SERVER', '8080');
   edtPortWebhook.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'PORT_Webhook', '8020');
   edtDDI_Default.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'DDI_Default', '55');
+  edtNumberWhatsApp.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'NumberWhatsApp', '');
 
   ArquivoConfig.UpdateFile;
 
@@ -697,11 +704,13 @@ begin
   NomeArquivo := TPath.Combine(ExtractFilePath(ParamStr(0)), 'EvolutionAPI.ini ');
   ArquivoConfig := TMemIniFile.Create(NomeArquivo);
 
+  ArquivoConfig.writeString('CONFIGURACAO', 'UrlServerEvolutionAPI', edtUrlServerEvolutionAPI.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'TokenAPI', edtTokenAPI.Text);
-  ArquivoConfig.writeString('CONFIGURACAO', 'PHONE_NUMBER_ID', edtPHONE_NUMBER_ID.Text);
+  ArquivoConfig.writeString('CONFIGURACAO', 'InstanceName', edtInstanceName.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'PORT_SERVER', edtPORT_SERVER.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'PORT_Webhook', edtPortWebhook.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'DDI_Default', edtDDI_Default.Text);
+  ArquivoConfig.writeString('CONFIGURACAO', 'NumberWhatsApp', edtNumberWhatsApp.Text);
 
   ArquivoConfig.UpdateFile;
 
@@ -841,26 +850,49 @@ end;
 
 procedure TfrmPrincipal.CarregarImagemBase64(const Base64Str: string; const Image: TImage);
 var
-  Stream: TMemoryStream;
-  Decoder: TBase64Encoding;
+  LInput: TMemoryStream;
+  LOutput: TMemoryStream;
+  AStr: TStringList;
+
+  {Stream: TMemoryStream;
+  Decoder: TBase64Encoding;}
+  Base64StrAux: string;
 begin
-  Stream := TMemoryStream.Create;
-  Decoder := TBase64Encoding.Create;
+  //Stream := TMemoryStream.Create;
+  //Decoder := TBase64Encoding.Create;
+
+  LInput := TMemoryStream.Create;
+  LOutput := TMemoryStream.Create;
   try
     try
+      //remover data:image/png;base64,
+      Base64StrAux := StringReplace(Base64Str, 'data:image/png;base64,', '', []);
+      AStr := TStringList.Create;
+
+      AStr.Add(Base64StrAux);
+      AStr.SaveToStream(LInput);
+      LInput.Position := 0;
+      TNetEncoding.Base64.Decode(LInput, LOutput);
+      LOutput.Position := 0;
+
       // Decodifica a string Base64 para um array de bytes
-      Stream.WriteBuffer(Decoder.DecodeStringToBytes(Base64Str), Length(Base64Str) div 2);
+      {Stream.WriteBuffer(Decoder.DecodeStringToBytes(Base64StrAux), Length(Base64StrAux) div 2);
       // Posiciona o ponteiro do fluxo no início
       Stream.Position := 0;
-      // Carrega o fluxo de memória no componente TImage
-      Image.Picture.Bitmap.LoadFromStream(Stream);
+      // Carrega o fluxo de memória no componente TImage}
+      //Image.Picture.Bitmap.LoadFromStream(Stream);
+      LOutput.SaveToFile(ExtractFilePath(ParamStr(0)) + '\QrCode.png');
+      Image.Picture.LoadFromStream(LOutput);
     except
       on E: Exception do
         ShowMessage('Erro ao carregar imagem: ' + E.Message);
     end;
   finally
-    Stream.Free;
-    Decoder.Free;
+    //Stream.Free;
+    //Decoder.Free;
+    AStr.Free;
+    LInput.Free;
+    LOutput.Free;
   end;
 end;
 

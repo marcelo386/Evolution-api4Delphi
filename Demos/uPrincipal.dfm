@@ -21,7 +21,7 @@ object frmPrincipal: TfrmPrincipal
   TextHeight = 13
   object Label1: TLabel
     Left = 18
-    Top = 8
+    Top = 45
     Width = 47
     Height = 13
     Caption = 'Key API:'
@@ -34,14 +34,14 @@ object frmPrincipal: TfrmPrincipal
   end
   object Label3: TLabel
     Left = 16
-    Top = 346
+    Top = 251
     Width = 51
     Height = 13
     Caption = 'Response:'
   end
   object Label5: TLabel
     Left = 18
-    Top = 49
+    Top = 86
     Width = 88
     Height = 13
     Caption = 'Instence Name:'
@@ -54,7 +54,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object Label6: TLabel
     Left = 18
-    Top = 92
+    Top = 129
     Width = 56
     Height = 13
     Caption = 'PORT API:'
@@ -67,7 +67,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object Label7: TLabel
     Left = 193
-    Top = 92
+    Top = 129
     Width = 76
     Height = 13
     Caption = 'DDI DEFAULT:'
@@ -80,9 +80,9 @@ object frmPrincipal: TfrmPrincipal
   end
   object Image2: TImage
     Left = 16
-    Top = 584
+    Top = 632
     Width = 343
-    Height = 112
+    Height = 64
     Center = True
     ParentShowHint = False
     Picture.Data = {
@@ -3777,7 +3777,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object Label8: TLabel
     Left = 84
-    Top = 545
+    Top = 591
     Width = 185
     Height = 33
     Caption = 'Evolution API'
@@ -3790,7 +3790,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object Label4: TLabel
     Left = 97
-    Top = 92
+    Top = 129
     Width = 89
     Height = 13
     Caption = 'PORT Webhook:'
@@ -3802,8 +3802,8 @@ object frmPrincipal: TfrmPrincipal
     ParentFont = False
   end
   object Image3: TImage
-    Left = 70
-    Top = 219
+    Left = 97
+    Top = 452
     Width = 140
     Height = 140
     Anchors = [akTop, akRight]
@@ -3811,7 +3811,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object Label10: TLabel
     Left = 18
-    Top = 131
+    Top = 168
     Width = 81
     Height = 13
     Caption = 'URL Webhook:'
@@ -3824,7 +3824,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object Label11: TLabel
     Left = 18
-    Top = 173
+    Top = 210
     Width = 99
     Height = 13
     Caption = 'Events Subscribe:'
@@ -3835,9 +3835,35 @@ object frmPrincipal: TfrmPrincipal
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Label12: TLabel
+    Left = 137
+    Top = 86
+    Width = 92
+    Height = 13
+    Caption = 'N'#250'mero Celular::'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label13: TLabel
+    Left = 18
+    Top = 5
+    Width = 138
+    Height = 13
+    Caption = 'Url Server Evolution API:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object edtTokenAPI: TEdit
     Left = 16
-    Top = 23
+    Top = 60
     Width = 345
     Height = 21
     Font.Charset = DEFAULT_CHARSET
@@ -4154,6 +4180,7 @@ object frmPrincipal: TfrmPrincipal
       ImageIndex = 1
       Images = ImageList1
       TabOrder = 1
+      Visible = False
       OnClick = btnBotaoSimplesClick
     end
     object btnTextoSimples: TButton
@@ -4289,21 +4316,21 @@ object frmPrincipal: TfrmPrincipal
   end
   object memResponse: TMemo
     Left = 16
-    Top = 362
+    Top = 267
     Width = 343
     Height = 178
     TabOrder = 3
   end
-  object edtPHONE_NUMBER_ID: TEdit
+  object edtInstanceName: TEdit
     Left = 16
-    Top = 64
-    Width = 167
+    Top = 101
+    Width = 113
     Height = 21
     TabOrder = 4
   end
   object BitBtn1: TBitBtn
     Left = 286
-    Top = 105
+    Top = 142
     Width = 82
     Height = 25
     Caption = 'Save INI'
@@ -4318,28 +4345,28 @@ object frmPrincipal: TfrmPrincipal
   end
   object edtPORT_SERVER: TEdit
     Left = 16
-    Top = 107
+    Top = 144
     Width = 69
     Height = 21
     TabOrder = 6
   end
   object edtDDI_Default: TEdit
     Left = 191
-    Top = 107
+    Top = 144
     Width = 84
     Height = 21
     TabOrder = 7
   end
   object edtPortWebhook: TEdit
     Left = 95
-    Top = 107
+    Top = 144
     Width = 88
     Height = 21
     TabOrder = 8
   end
   object bCreateInstanceBasic: TBitBtn
-    Left = 192
-    Top = 61
+    Left = 257
+    Top = 98
     Width = 113
     Height = 25
     Caption = 'Create Instance'
@@ -4354,7 +4381,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object edtURLWebhook: TEdit
     Left = 16
-    Top = 146
+    Top = 183
     Width = 256
     Height = 21
     TabOrder = 10
@@ -4362,7 +4389,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object bSetWebhook: TBitBtn
     Left = 288
-    Top = 185
+    Top = 222
     Width = 82
     Height = 25
     Caption = 'SetWebhook'
@@ -4376,15 +4403,36 @@ object frmPrincipal: TfrmPrincipal
     OnClick = bSetWebhookClick
   end
   object edtEventsSubscribe: TEdit
-    Left = 13
-    Top = 188
-    Width = 261
+    Left = 16
+    Top = 225
+    Width = 256
     Height = 21
     TabOrder = 12
     Text = 
       '"QRCODE_UPDATED", "MESSAGES_SET", "MESSAGES_UPSERT", "MESSAGES_U' +
       'PDATE", "MESSAGES_DELETE", "SEND_MESSAGE", "CONNECTION_UPDATE", ' +
       '"CALL"'
+  end
+  object edtNumberWhatsApp: TEdit
+    Left = 135
+    Top = 101
+    Width = 113
+    Height = 21
+    TabOrder = 13
+  end
+  object edtUrlServerEvolutionAPI: TEdit
+    Left = 16
+    Top = 20
+    Width = 345
+    Height = 21
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 14
+    Text = 'http://localhost'
   end
   object ImageList1: TImageList
     DrawingStyle = dsTransparent

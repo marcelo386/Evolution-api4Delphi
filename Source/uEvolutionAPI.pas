@@ -52,7 +52,7 @@ type
 
   public
     //Individual
-    function CreateInstanceBasic(instanceName, token, number: string; qrcode: Boolean): string;
+    function CreateInstanceBasic(instanceName, tokenInstancia, number: string; qrcode: Boolean): string;
     function CreateInstanceWithWebhook(instanceName, token, number, urlWebhook, eventos: string; qrcode, webhook_by_events: Boolean): string;
     function SetWebhook(url, events: string; webhook_by_events, webhook_base64: Boolean): string;
     function SendText(waid, body: string; previewurl: string = 'false'): string;
@@ -193,7 +193,7 @@ begin
 
 end;
 
-function TEvolutionAPI.CreateInstanceBasic(instanceName, token, number: string; qrcode: Boolean): string;
+function TEvolutionAPI.CreateInstanceBasic(instanceName, tokenInstancia, number: string; qrcode: Boolean): string;
 var
   response: string;
   json: string;
@@ -206,7 +206,7 @@ begin
     json :=
       '{' +
       '  "instanceName": "' + instanceName + '", ' +
-      '  "token": "' + token + '", ' +
+      '  "token": "' + tokenInstancia + '", ' +
       '  "qrcode": true, ' +
       '  "number": "' + number + '"  ' +
       '}';
@@ -216,6 +216,7 @@ begin
     try
       response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/instance/create')
         .ContentType('application/json')
+        //.Token(token);
         .AddHeader('apikey', token)
         .AddBody(UTF8Texto)
         .Post
