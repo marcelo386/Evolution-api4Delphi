@@ -54,8 +54,14 @@ type
     //Individual
     function CreateInstanceBasic(instanceName, token, number: string; qrcode: Boolean): string;
     function CreateInstanceWithWebhook(instanceName, token, number, urlWebhook, eventos: string; qrcode, webhook_by_events: Boolean): string;
+    function SetWebhook(url, events: string; webhook_by_events, webhook_base64: Boolean): string;
     function SendText(waid, body: string; previewurl: string = 'false'): string;
     function SendFile(waid, body, typeFile, url: string; const filename: string = ''): string;
+    function SendFileBase64(waid, body, typeFile, Base64: string; const filename: string = ''): string;
+    function SendNarratedAudio(waid, url: string): string;
+    function SendNarratedAudioBase64(waid, Base64: string): string;
+    function SendSticker(waid, url: string): string;
+    function SendStickerBase64(waid, Base64: string): string;
     function SendButton(waid, body, actions, header, footer: string): string;
     function SendListMenu(waid, body, sections, header, footer, Button_Text: string): string;
     function SendContact(waid, phoneNumber, formatted_name, options: string): string;
@@ -64,6 +70,7 @@ type
     function SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string = 'false'): string;
     function MarkIsRead(waid, message_id, fromMe: string): string;
     function DeleteMessage(waid, message_id, fromMe, paticipant: string): string;
+    function CheckNumberExists(numbers: string): string;
 
     function UploadMedia(FileName: string): string;
     function PostMediaFile(FileName, MediaType: string): string;
@@ -74,6 +81,7 @@ type
     function GetContentTypeFromExtension(const AContentType: string): string;
     function GetExtensionTypeFromContentType(const AFileExtension: string): string;
     function GetTypeFileFromContentType(const AContentType: string): string;
+    function GetTypeFileFromExtension(const AFileExtension: string): string;
 
     procedure StartServer;
     procedure StopServer;
@@ -125,6 +133,64 @@ begin
   vText  := StringReplace(vText, #$A       ,' \n'   , [rfReplaceAll] );
   vText  := StringReplace(vText, #$A#$A    ,' \n'   , [rfReplaceAll] );
   Result := vText;
+end;
+
+function TEvolutionAPI.CheckNumberExists(numbers: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+
+    json :=
+      '{ ' +
+      '   "numbers": [' + numbers + '] ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/whatsappNumbers/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak + json + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
 end;
 
 function TEvolutionAPI.CreateInstanceBasic(instanceName, token, number: string; qrcode: Boolean): string;
@@ -275,11 +341,11 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/deleteMessageForEveryone/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
-        .Post
+        .Delete
         .Content;
       //gravar_log(response);
     except
@@ -713,19 +779,6 @@ begin
 
     body := CaractersWeb(body);
 
-    (*json :=
-      '{ ' +
-      '  "messaging_product": "whatsapp", ' +
-      '  "recipient_type": "individual", ' +
-      '  "to": "' + waid + '", ' +
-      '  "type": "' + typeFile + '", ' +
-      '  "' + typeFile + '": {  ' +
-      '    "link": "' + url + '"  ' +
-      //'    ,"caption": "' + body + '"  ' +
-      IfThen( Trim(body) <> '' ,' ,"caption": "' + body + '"  ', '') +
-      IfThen( Trim(filename) <> '' ,' ,"filename": "' + filename + '"  ', '') +
-      '    } ' +
-      '}';*)
     json :=
       '{ ' +
       '    "number": ""' + waid + '", ' +
@@ -735,6 +788,7 @@ begin
       '    }, ' +
       '    "mediaMessage": { ' +
       '        "mediatype": "' + typeFile + '", ' +
+      IfThen( Trim(fileName) <> '' ,'        ,"fileName": "' + filename + '"  ', '') +
       IfThen( Trim(body) <> '' ,'        ,"caption": "' + body + '"  ', '') +
       '        "media": "' + url + '" ' +
       '    } ' +
@@ -778,11 +832,93 @@ begin
       end;
     end;
 
-    //MemoLogApiOficial.Lines.Add(response);
-    //MemoLogApiOficial.Lines.Add('');
-    //MemoLogApiOficial.Lines.Add('Unique id: ' + MessagePayload.Messages[0].ID);
-    //gravar_log('Unique id: ' + MessagePayload.Messages[0].ID);
+
   finally
+  end;
+
+end;
+
+function TEvolutionAPI.SendFileBase64(waid, body, typeFile, Base64: string; const filename: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  LLine: string;
+  LBase64: TStringList;
+  i : integer;
+begin
+  Result := '';
+  LLine := '';
+
+  LBase64 := TStringList.Create;
+  try
+    LBase64.Text := Base64;
+    for i := 0 to LBase64.Count -1  do
+      LLine := LLine + LBase64[i];
+    Base64 := LLine;
+
+    if (length(waid) = 11) or (length(waid) = 10) then
+      waid := DDIDefault.ToString + waid;
+
+    body := CaractersWeb(body);
+
+    json :=
+      '{ ' +
+      '    "number": "' + waid + '", ' +
+      '    "options": { ' +
+      '        "delay": 1200, ' +
+      '        "presence": "composing" ' +
+      '    }, ' +
+      '    "mediaMessage": { ' +
+      '        "mediatype": "' + typeFile + '", ' +
+      IfThen( Trim(fileName) <> '' ,'        "fileName": "' + filename + '",  ', '') +
+      IfThen( Trim(body) <> '' ,'        "caption": "' + body + '",  ', '') +
+      '        "media": "' + Base64 + '" ' +
+      '    } ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendMedia/' + instanceName + '')
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        //MemoLogApiOficial.Lines.Add(json + SLINEBREAK);
+        if Assigned(FOnRetSendMessage) then
+          FOnRetSendMessage(Self, 'Error: ' + e.Message);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
+      //Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+      end;
+    end;
+
+
+  finally
+    freeAndNil(LBase64);
   end;
 
 end;
@@ -927,33 +1063,32 @@ begin
 
     body := CaractersWeb(body);
 
-    json :=
+    (*json :=
       '{ ' +
       '  "messaging_product": "whatsapp", ' +
       //'  "recipient_type": "individual", ' +
       '  "to": "' + waid + '", ' +
       '  "type": "location", ' +
-
-      (*
-      IfThen( Trim(header) <> '' ,
-      '  "header": { ' +
-      '    "type": "text",  ' +
-      '    "text": "' + header + '"  ' +
-      '  }, ', '') +
-
-      IfThen( Trim(body) <> '' ,
-      '  "body": { ' +
-      '    "text": "' + body + '" ' +
-      '  }, ', '') +
-
-      IfThen( Trim(footer) <> '' ,
-      '  "footer": { ' +
-      '    "text": "' + footer + '" ' +
-      '  }, ', '') +
-      *)
-
       Location +
-      '}';
+      '}';*)
+
+    json :=
+      '{ ' +
+      '    "number": "' + waid + '", ' +
+      '    "options": { ' +
+      '        "delay": 1200, ' +
+      '        "presence": "composing" ' +
+      '    }, ' +
+      Location +
+
+      (*'    "locationMessage": { ' +
+      '        "name": "Bora Bora", ' +
+      '        "address": "French Polynesian", ' +
+      '        "latitude": -16.505538233564373, ' +
+      '        "longitude": -151.7422770494996 ' +
+      '    } ' +*)
+
+      '} ';
 
     UTF8Texto := UTF8Encode(json);
 
@@ -991,6 +1126,157 @@ begin
     end;
 
   finally
+  end;
+
+end;
+
+function TEvolutionAPI.SendNarratedAudio(waid, url: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    if (length(waid) = 11) or (length(waid) = 10) then
+      waid := DDIDefault.ToString + waid;
+
+    json :=
+      '{ ' +
+      '    "number": "' + waid + '", ' +
+      '    "options": { ' +
+      '        "delay": 1200, ' +
+      '        "presence": "recording", ' +
+      '        "encoding": true ' +
+      '    }, ' +
+      '    "audioMessage": { ' +
+      '        "audio": "' + url + '" ' +
+      '    } ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+    try
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendWhatsAppAudio/' + instanceName + '')
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        //MemoLogApiOficial.Lines.Add(json + SLINEBREAK);
+        if Assigned(FOnRetSendMessage) then
+          FOnRetSendMessage(Self, 'Error: ' + e.Message);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
+      //Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+  finally
+  end;
+
+end;
+
+function TEvolutionAPI.SendNarratedAudioBase64(waid, Base64: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  LLine: string;
+  LBase64: TStringList;
+  i : integer;
+begin
+  Result := '';
+  LLine := '';
+
+  LBase64 := TStringList.Create;
+  try
+    LBase64.Text := Base64;
+    for i := 0 to LBase64.Count -1  do
+      LLine := LLine + LBase64[i];
+    Base64 := LLine;
+
+    if (length(waid) = 11) or (length(waid) = 10) then
+      waid := DDIDefault.ToString + waid;
+
+    json :=
+      '{ ' +
+      '    "number": "' + waid + '", ' +
+      '    "options": { ' +
+      '        "delay": 1200, ' +
+      '        "presence": "recording", ' +
+      '        "encoding": true ' +
+      '    }, ' +
+      '    "audioMessage": { ' +
+      '        "audio": "' + Base64 + '" ' +
+      '    } ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+    try
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendWhatsAppAudio/' + instanceName + '')
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        //MemoLogApiOficial.Lines.Add(json + SLINEBREAK);
+        if Assigned(FOnRetSendMessage) then
+          FOnRetSendMessage(Self, 'Error: ' + e.Message);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
+      //Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+  finally
+    freeAndNil(LBase64);
   end;
 
 end;
@@ -1153,6 +1439,153 @@ begin
 
 end;
 
+function TEvolutionAPI.SendSticker(waid, url: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    if (length(waid) = 11) or (length(waid) = 10) then
+      waid := DDIDefault.ToString + waid;
+
+    json :=
+      '{ ' +
+      '    "number": "' + waid + '", ' +
+      '    "options": { ' +
+      '        "delay": 1200, ' +
+      '        "presence": "composing" ' +
+      '    }, ' +
+      '    "stickerMessage": { ' +
+      '        "image": "' + url + '" ' +
+      '    } ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+    try
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendSticker/' + instanceName + '')
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        //MemoLogApiOficial.Lines.Add(json + SLINEBREAK);
+        if Assigned(FOnRetSendMessage) then
+          FOnRetSendMessage(Self, 'Error: ' + e.Message);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
+      //Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+  finally
+  end;
+
+end;
+
+function TEvolutionAPI.SendStickerBase64(waid, Base64: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  LLine: string;
+  LBase64: TStringList;
+  i : integer;
+begin
+  Result := '';
+
+  LBase64 := TStringList.Create;
+  try
+    LBase64.Text := Base64;
+    for i := 0 to LBase64.Count -1  do
+      LLine := LLine + LBase64[i];
+    Base64 := LLine;
+
+    if (length(waid) = 11) or (length(waid) = 10) then
+      waid := DDIDefault.ToString + waid;
+
+    json :=
+      '{ ' +
+      '    "number": "' + waid + '", ' +
+      '    "options": { ' +
+      '        "delay": 1200, ' +
+      '        "presence": "composing" ' +
+      '    }, ' +
+      '    "stickerMessage": { ' +
+      '        "image": "' + Base64 + '" ' +
+      '    } ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+    try
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendSticker/' + instanceName + '')
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        //MemoLogApiOficial.Lines.Add(json + SLINEBREAK);
+        if Assigned(FOnRetSendMessage) then
+          FOnRetSendMessage(Self, 'Error: ' + e.Message);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
+      //Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+    freeAndNil(LBase64);
+  end;
+
+end;
+
 function TEvolutionAPI.SendText(waid, body, previewurl: string): string;
 var
   response: string;
@@ -1224,6 +1657,64 @@ begin
   end;
 
 
+end;
+
+function TEvolutionAPI.SetWebhook(url, events: string; webhook_by_events, webhook_base64: Boolean): string;
+var
+  response: string;
+  json: string;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+    json :=
+      '{' +
+      '  "url": "' + url + '", ' +
+      '  "webhook_by_events": true, ' +
+      '  "webhook_base64": false, ' +
+      '  "events": [' + events + '] '+
+      '}';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/webhook/set/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('apikey', token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
 end;
 
 procedure TEvolutionAPI.StartServer;
@@ -1594,6 +2085,65 @@ begin
     Result := 'document'
   else
     Result := 'document';
+end;
+
+function TEvolutionAPI.GetTypeFileFromExtension(const AFileExtension: string): string;
+var
+  TypeFileList: TStringList;
+begin
+  TypeFileList := TStringList.Create;
+
+  try
+    // Mapeamento de extensões para tipos de conteúdo
+    TypeFileList.Values['.html'] := 'document';
+    TypeFileList.Values['.htm'] := 'document';
+    TypeFileList.Values['.txt'] := 'document';
+    TypeFileList.Values['.log'] := 'document';
+    TypeFileList.Values['.csv'] := 'document';
+    TypeFileList.Values['.jpg'] := 'image';
+    TypeFileList.Values['.jpeg'] := 'image';
+    TypeFileList.Values['.png'] := 'image';
+    TypeFileList.Values['.gif'] := 'image';
+    TypeFileList.Values['.bmp'] := 'image';
+    TypeFileList.Values['.ico'] := 'image';
+    TypeFileList.Values['.svg'] := 'image';
+    TypeFileList.Values['.pdf'] := 'document';
+    TypeFileList.Values['.doc'] := 'document';
+    TypeFileList.Values['.docx'] := 'document';
+    TypeFileList.Values['.xls'] := 'document';
+    TypeFileList.Values['.xlsx'] := 'document';
+    TypeFileList.Values['.ppt'] := 'document';
+    TypeFileList.Values['.pptx'] := 'document';
+    TypeFileList.Values['.zip'] := 'document';
+    TypeFileList.Values['.rar'] := 'document';
+    TypeFileList.Values['.tar'] := 'document';
+    TypeFileList.Values['.7z'] := 'document';
+    TypeFileList.Values['.mp3'] := 'audio';
+    TypeFileList.Values['.wav'] := 'audio';
+    TypeFileList.Values['.mp4'] := 'video';
+    TypeFileList.Values['.avi'] := 'video';
+    TypeFileList.Values['.mkv'] := 'video';
+    TypeFileList.Values['.xml'] := 'text';
+    TypeFileList.Values['.json'] := 'document';
+    TypeFileList.Values['.ogg'] := 'audio';
+    TypeFileList.Values['.webm'] := 'video';
+    TypeFileList.Values['.flv'] := 'video';
+    TypeFileList.Values['.wmv'] := 'video';
+    TypeFileList.Values['.aac'] := 'audio';
+    TypeFileList.Values['.flac'] := 'audio';
+    TypeFileList.Values['.css'] := 'document';
+    TypeFileList.Values['.js'] := 'document';
+    TypeFileList.Values['.ttf'] := 'document';
+    TypeFileList.Values['.otf'] := 'document';
+    TypeFileList.Values['.woff'] := 'document';
+    TypeFileList.Values['.woff2'] := 'document';
+    TypeFileList.Values['.webp'] := 'sticker';
+    // Adicione mais extensões e tipos de conteúdo conforme necessário
+
+    Result := TypeFileList.Values[AFileExtension];
+  finally
+    TypeFileList.Free;
+  end;
 end;
 
 end.

@@ -21,7 +21,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, System.ImageList, Vcl.ImgList, uWPPCloudAPI,
-  uWhatsAppBusinessClasses, IniFiles, System.IOUtils, Vcl.Buttons, Vcl.Imaging.pngimage, System.NetEncoding, uEvolutionAPI;
+  uWhatsAppBusinessClasses, IniFiles, System.IOUtils, Vcl.Buttons, Vcl.Imaging.pngimage, System.NetEncoding, DateUtils,
+  uEvolutionAPI, uEventsMessageClasses;
 
 type
   TfrmPrincipal = class(TForm)
@@ -84,6 +85,11 @@ type
     edtRemoteJidQuoted: TLabeledEdit;
     mem_Quoted_message: TMemo;
     Label9: TLabel;
+    Label10: TLabel;
+    edtURLWebhook: TEdit;
+    bSetWebhook: TBitBtn;
+    Label11: TLabel;
+    edtEventsSubscribe: TEdit;
     procedure btnTextoSimplesClick(Sender: TObject);
     procedure btnBotaoSimplesClick(Sender: TObject);
     procedure btnListaMenuClick(Sender: TObject);
@@ -104,10 +110,14 @@ type
     procedure EvolutionAPI1Response(Sender: TObject; Response: string);
     procedure EvolutionAPI1RetSendMessage(Sender: TObject; Response: string);
     procedure bCreateInstanceBasicClick(Sender: TObject);
+    procedure btnAudioClick(Sender: TObject);
+    procedure btnStickerClick(Sender: TObject);
+    procedure bSetWebhookClick(Sender: TObject);
 
   private
     procedure CarregarImagemBase64(const Base64Str: string; const Image: TImage);
     procedure ProcessQRCodeImage;
+    function BooleanToStr(Operador: Boolean): String;
     { Private declarations }
   public
     { Public declarations }
@@ -186,16 +196,112 @@ begin
   //SendReaction(waid, message_id, emoji: string)
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
-  sResponse := EvolutionAPI1.MarkIsRead(ed_num.Text, edtMessage_id.Text);
+  sResponse := EvolutionAPI1.MarkIsRead(ed_num.Text, edtMessage_id.Text, 'false');
 
   memResponse.Lines.Add(sResponse);
+end;
+
+procedure TfrmPrincipal.bSetWebhookClick(Sender: TObject);
+begin
+  if Trim(edtURLWebhook.Text) = '' then
+  begin
+    ShowMessage('INFORM THE URL Webhook');
+    edtURLWebhook.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtEventsSubscribe.Text) = '' then
+  begin
+    ShowMessage('INFORM THE Events Subscribe');
+    edtEventsSubscribe.SetFocus;
+    Exit;
+  end;
+
+  EvolutionAPI1.urlServer := 'http://localhost';
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  sResponse := EvolutionAPI1.SetWebhook(edtURLWebhook.Text, edtEventsSubscribe.Text, True, False);
+
+  memResponse.Lines.Add(sResponse);
+
 end;
 
 procedure TfrmPrincipal.btnArquivoClick(Sender: TObject);
 var
   caption, Type_File : string;
-  caminhoArquivo : string;
+  caminhoArquivo, FileName : string;
+  Extensao: string;
   isFigurinha : Boolean;
+  LStream     : TMemoryStream;
+  LBase64File : TBase64Encoding;
+  LExtension  : String;
+  LBase64     : String;
+begin
+  if Trim(ed_num.Text) = '' then
+  begin
+    ShowMessage('INFORM THE DESTINATION WHATSAPP NUMBER');
+    ed_num.SetFocus;
+    Exit;
+  end;
+
+  caminhoArquivo := '';
+
+  OpenDialog1.Execute();
+
+  if FileExists(OpenDialog1.FileName) then
+    caminhoArquivo := OpenDialog1.FileName
+  else
+    Exit;
+
+  Extensao := LowerCase(ExtractFileExt(caminhoArquivo));
+  FileName := ExtractFileName(caminhoArquivo);
+
+  LStream     := TMemoryStream.Create;
+  LBase64File := TBase64Encoding.Create;
+  try
+    try
+      LStream.LoadFromFile(caminhoArquivo);
+      if LStream.Size = 0 then
+      Begin
+        //Int_OnErroInterno(Self, 'SendFileMessageEx: ' + Format(MSG_WarningErrorFile, [phoneNumber]), phoneNumber);
+        Exit;
+      end;
+
+      LStream.Position := 0;
+      LBase64 := LBase64File.EncodeBytesToString(LStream.Memory, LStream.Size);
+      //LBase64      := StrExtFile_Base64Type(caminhoArquivo) + LBase64;
+    except
+      //Int_OnErroInterno(Self, 'SendFileMessageEx: ' + MSG_ExceptMisc, phoneNumber);
+    end;
+  finally
+    FreeAndNil(LStream);
+    FreeAndNil(LBase64File);
+  end;
+
+  //Type_File := 'image';
+  Type_File := EvolutionAPI1.GetTypeFileFromExtension(Extensao);
+
+  if Type_File <> 'document' then
+    FileName := '';
+
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+
+  if Type_File = 'document' then
+    sResponse := EvolutionAPI1.SendFileBase64(ed_num.Text, mem_message.Text, Type_File, LBase64, FileName)
+  else
+  if Type_File = 'audio' then
+    sResponse := EvolutionAPI1.SendNarratedAudioBase64(ed_num.Text, LBase64)
+  else
+  if Type_File = 'sticker' then
+    sResponse := EvolutionAPI1.SendStickerBase64(ed_num.Text, LBase64)
+  else
+    sResponse := EvolutionAPI1.SendFileBase64(ed_num.Text, mem_message.Text, Type_File, LBase64, '');
+
+  memResponse.Lines.Add(sResponse);
+end;
+
+procedure TfrmPrincipal.btnAudioClick(Sender: TObject);
 begin
   if Trim(ed_num.Text) = '' then
   begin
@@ -210,37 +316,20 @@ begin
     mem_message.SetFocus;
   end;}
 
-  {if Trim(edtURL.Text) = '' then
+  if Trim(edtURL.Text) = '' then
   begin
     ShowMessage('INFORM THE URL LINK FILE TO BE SENT');
     edtURL.SetFocus;
     Exit;
-  end;}
+  end;
 
-  //sResponse := EvolutionAPI1.UploadMedia('');
-  //sResponse := EvolutionAPI1.PostMediaFile('','');
-  //memResponse.Lines.Add(sResponse);
-
-  {OpenDialog1.Execute();
-
-  if FileExists(OpenDialog1.FileName) then
-    caminhoArquivo := OpenDialog1.FileName
-  else
-    Exit;
-
-  isFigurinha := False;}
-
-  Type_File := 'image';
-
-  //EvolutionAPI1.Token := edtTokenAPI.Text;
-  //EvolutionAPI1.PHONE_NUMBER_ID := edtPHONE_NUMBER_ID.Text;
-  //sResponse := EvolutionAPI1.SendFile(ed_num.Text, mem_message.Text, 'image', edtURL.Text);
-
-
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
+  sResponse := EvolutionAPI1.SendFile(ed_num.Text, mem_message.Text, 'image', edtURL.Text);
 
   //sResponse := EvolutionAPI1.SendFile(ed_num.Text, mem_message.Text, 'document', 'https://we.tl/t-Xy3U9kbKUH');
-  //memResponse.Lines.Add(sResponse);
 
+  memResponse.Lines.Add(sResponse);
 end;
 
 procedure TfrmPrincipal.btnBotaoSimplesClick(Sender: TObject);
@@ -452,20 +541,13 @@ begin
     Exit;
   end;
 
-  {if Trim(mem_message.Text) = '' then
-  begin
-    ShowMessage('INFORM THE BODY MESSAGE TO BE SENT');
-    mem_message.SetFocus;
-    Exit;
-  end;}
-
   sLocation :=
-      '  "location": { ' +
-      '      "longitude": -70.4078, ' +
-      '      "latitude": 25.3789, ' +
-      '      "name": "Cristo Rendedor", ' +
-      '      "address": "Rio de Janeiro-RJ" ' +
-      ' } ';
+      '    "locationMessage": { ' +
+      '        "name": "Cristo Rendedor", ' +
+      '        "address": "Rio de Janeiro-RJ", ' +
+      '        "latitude": 25.3789, ' +
+      '        "longitude": -70.4078 ' +
+      '    } ';
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtPHONE_NUMBER_ID.Text;
@@ -533,6 +615,12 @@ begin
   sResponse := EvolutionAPI1.SendReplies(ed_num.Text, edtMessage_id.Text, mem_message.Text, edtRemoteJidQuoted.Text, mem_Quoted_message.Text, 'true', 'false');
 
   memResponse.Lines.Add(sResponse);
+end;
+
+procedure TfrmPrincipal.btnStickerClick(Sender: TObject);
+begin
+//
+
 end;
 
 procedure TfrmPrincipal.btnTextoSimplesClick(Sender: TObject);
@@ -622,14 +710,68 @@ begin
   LerConfiguracoes;
 end;
 
+function TfrmPrincipal.BooleanToStr(Operador: Boolean): String;
+begin
+  if Operador then
+    result := 'True'
+  else
+    result := 'False';
+end;
+
 procedure TfrmPrincipal.EvolutionAPI1Response(Sender: TObject; Response: string);
 var
-  Result: uWhatsAppBusinessClasses.TResultClass;
+  Result: uEventsMessageClasses.TResultEventClass;
 begin
 
   memResponse.Lines.Add('' + Response + #13#10);
 
   try
+    Result := TResultEventClass.FromJsonString(Response);
+    memResponse.Lines.Add('instance: ' + Result.instance);
+    memResponse.Lines.Add('event: ' + Result.event);
+    memResponse.Lines.Add('sender: ' + Result.sender);
+
+    if Assigned(Result.data.key) then
+    begin
+      memResponse.Lines.Add('remoteJid: ' + Result.data.key.remoteJid);
+      memResponse.Lines.Add('fromMe: ' + BooleanToStr(Result.data.key.fromMe));
+      memResponse.Lines.Add('id: ' + Result.data.key.id);
+    end;
+
+    memResponse.Lines.Add('pushName: ' + Result.data.pushName);
+
+    if Assigned(Result.data.message) then
+    begin
+      memResponse.Lines.Add('conversation: ' + Result.data.message.conversation);
+
+      if Assigned(Result.data.message.messageContextInfo) then
+      begin
+        //memResponse.Lines.Add('fromMe: ' + BooleanToStr(Result.data.key.fromMe));
+        if Assigned(Result.data.message.messageContextInfo.deviceListMetadata) then
+        begin
+          memResponse.Lines.Add('senderKeyHash: ' + Result.data.message.messageContextInfo.deviceListMetadata.senderKeyHash);
+          //memResponse.Lines.Add('senderTimestamp: ' + DateTimeToStr(UnixToDateTime( StrToIntDef(Result.data.message.messageContextInfo.deviceListMetadata.senderTimestamp,0) , False)));
+          memResponse.Lines.Add('recipientKeyHash: ' + Result.data.message.messageContextInfo.deviceListMetadata.recipientKeyHash);
+          //memResponse.Lines.Add('recipientTimestamp: ' + DateTimeToStr(UnixToDateTime( StrToIntDef(Result.data.message.messageContextInfo.deviceListMetadata.recipientTimestamp,0) , False)));
+        end;
+
+        memResponse.Lines.Add('deviceListMetadataVersion: ' + FloatToStr(Result.data.message.messageContextInfo.deviceListMetadataVersion));
+      end;
+    end;
+
+    memResponse.Lines.Add('messageType: ' + Result.data.messageType);
+    memResponse.Lines.Add('messageTimestamp: ' + DateTimeToStr(UnixToDateTime(Result.data.messageTimestamp, False)));
+    memResponse.Lines.Add('source: ' + Result.data.source);
+
+    memResponse.Lines.Add('apikey: ' + Result.apikey);
+    memResponse.Lines.Add('date_time: ' + Result.date_time);
+    memResponse.Lines.Add('destination: ' + Result.destination);
+
+  except on E: Exception do
+  end;
+
+
+  {try
     Result := TResultClass.FromJsonString(Response);
     memResponse.Lines.Add('id: ' + Result.entry[0].id);
 
@@ -688,7 +830,7 @@ begin
 
   except on E: Exception do
   end;
-
+  }
 
 end;
 

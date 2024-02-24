@@ -34,7 +34,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object Label3: TLabel
     Left = 16
-    Top = 261
+    Top = 346
     Width = 51
     Height = 13
     Caption = 'Response:'
@@ -80,9 +80,9 @@ object frmPrincipal: TfrmPrincipal
   end
   object Image2: TImage
     Left = 16
-    Top = 496
+    Top = 584
     Width = 343
-    Height = 200
+    Height = 112
     Center = True
     ParentShowHint = False
     Picture.Data = {
@@ -3776,8 +3776,8 @@ object frmPrincipal: TfrmPrincipal
     Stretch = True
   end
   object Label8: TLabel
-    Left = 90
-    Top = 457
+    Left = 84
+    Top = 545
     Width = 185
     Height = 33
     Caption = 'Evolution API'
@@ -3803,11 +3803,37 @@ object frmPrincipal: TfrmPrincipal
   end
   object Image3: TImage
     Left = 70
-    Top = 134
+    Top = 219
     Width = 140
     Height = 140
     Anchors = [akTop, akRight]
     Proportional = True
+  end
+  object Label10: TLabel
+    Left = 18
+    Top = 131
+    Width = 81
+    Height = 13
+    Caption = 'URL Webhook:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label11: TLabel
+    Left = 18
+    Top = 173
+    Width = 99
+    Height = 13
+    Caption = 'Events Subscribe:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
   end
   object edtTokenAPI: TEdit
     Left = 16
@@ -3825,7 +3851,7 @@ object frmPrincipal: TfrmPrincipal
   object GroupBox1: TGroupBox
     AlignWithMargins = True
     Left = 376
-    Top = 8
+    Top = 10
     Width = 377
     Height = 699
     TabOrder = 1
@@ -4150,11 +4176,11 @@ object frmPrincipal: TfrmPrincipal
       Width = 221
       Height = 25
       Align = alTop
-      Caption = 'Enviar '#193'udio'
+      Caption = 'Send '#193'udio'
       ImageIndex = 7
       Images = ImageList1
       TabOrder = 8
-      Visible = False
+      OnClick = btnAudioClick
     end
     object btnContato: TButton
       AlignWithMargins = True
@@ -4176,11 +4202,12 @@ object frmPrincipal: TfrmPrincipal
       Width = 221
       Height = 25
       Align = alTop
-      Caption = 'Enviar Sticker'
+      Caption = 'Send Sticker'
       ImageIndex = 8
       Images = ImageList1
       TabOrder = 9
       Visible = False
+      OnClick = btnStickerClick
     end
     object btnLocalizacao: TButton
       AlignWithMargins = True
@@ -4215,11 +4242,10 @@ object frmPrincipal: TfrmPrincipal
       Width = 221
       Height = 25
       Align = alTop
-      Caption = 'Apagar Mensagem'
+      Caption = 'Delete Message'
       ImageIndex = 15
       Images = ImageList1
       TabOrder = 14
-      Visible = False
     end
     object btnReagir: TButton
       AlignWithMargins = True
@@ -4241,7 +4267,7 @@ object frmPrincipal: TfrmPrincipal
       Width = 221
       Height = 25
       Align = alTop
-      Caption = 'Responder Mensagem'
+      Caption = 'Reply Message'
       ImageIndex = 14
       Images = ImageList1
       TabOrder = 16
@@ -4263,7 +4289,7 @@ object frmPrincipal: TfrmPrincipal
   end
   object memResponse: TMemo
     Left = 16
-    Top = 277
+    Top = 362
     Width = 343
     Height = 178
     TabOrder = 3
@@ -4278,9 +4304,9 @@ object frmPrincipal: TfrmPrincipal
   object BitBtn1: TBitBtn
     Left = 286
     Top = 105
-    Width = 75
+    Width = 82
     Height = 25
-    Caption = 'Salvar'
+    Caption = 'Save INI'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -4325,6 +4351,40 @@ object frmPrincipal: TfrmPrincipal
     ParentFont = False
     TabOrder = 9
     OnClick = bCreateInstanceBasicClick
+  end
+  object edtURLWebhook: TEdit
+    Left = 16
+    Top = 146
+    Width = 256
+    Height = 21
+    TabOrder = 10
+    Text = 'http://localhost:3000/'
+  end
+  object bSetWebhook: TBitBtn
+    Left = 288
+    Top = 185
+    Width = 82
+    Height = 25
+    Caption = 'SetWebhook'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 11
+    OnClick = bSetWebhookClick
+  end
+  object edtEventsSubscribe: TEdit
+    Left = 13
+    Top = 188
+    Width = 261
+    Height = 21
+    TabOrder = 12
+    Text = 
+      '"QRCODE_UPDATED", "MESSAGES_SET", "MESSAGES_UPSERT", "MESSAGES_U' +
+      'PDATE", "MESSAGES_DELETE", "SEND_MESSAGE", "CONNECTION_UPDATE", ' +
+      '"CALL"'
   end
   object ImageList1: TImageList
     DrawingStyle = dsTransparent
