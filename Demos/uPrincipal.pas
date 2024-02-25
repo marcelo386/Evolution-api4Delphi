@@ -22,7 +22,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, System.ImageList, Vcl.ImgList, uWPPCloudAPI,
   uWhatsAppBusinessClasses, IniFiles, System.IOUtils, Vcl.Buttons, Vcl.Imaging.pngimage, System.NetEncoding, DateUtils,
-  uEvolutionAPI, uEventsMessageClasses;
+  uEvolutionAPI, uEventsMessageClasses, uEventsMessageUpdateClasses;
 
 type
   TfrmPrincipal = class(TForm)
@@ -94,6 +94,7 @@ type
     edtNumberWhatsApp: TEdit;
     Label13: TLabel;
     edtUrlServerEvolutionAPI: TEdit;
+    BitBtn3: TBitBtn;
     procedure btnTextoSimplesClick(Sender: TObject);
     procedure btnBotaoSimplesClick(Sender: TObject);
     procedure btnListaMenuClick(Sender: TObject);
@@ -117,6 +118,8 @@ type
     procedure btnAudioClick(Sender: TObject);
     procedure btnStickerClick(Sender: TObject);
     procedure bSetWebhookClick(Sender: TObject);
+    procedure BitBtn3Click(Sender: TObject);
+    procedure EvolutionAPI1ResponseMessageUpdate(Sender: TObject; Response: string);
 
   private
     procedure CarregarImagemBase64(const Base64Str: string; const Image: TImage);
@@ -207,6 +210,22 @@ begin
   memResponse.Lines.Add(sResponse);
 end;
 
+procedure TfrmPrincipal.BitBtn3Click(Sender: TObject);
+var
+  //Result: uEventsMessageClasses.TResultEventClass;
+  Result: uEventsMessageUpdateClasses.TResultEventMessageUpdateClass;
+  Response: string;
+begin
+  Response := '{"event":"messages.update","instance":"testeapi2","data":{"remoteJid":"5517981388414@s.whatsapp.net","id":"BAE5135866706C39","fromMe":true,"status":"READ","datetime":1708880950011,"owner":"testeapi2"}';
+  Response := Response + ',"destination":"http://192.168.0.155:3000/webhook","date_time":"2024-02-25T14:09:10.011Z","sender":"551734226371@s.whatsapp.net","server_url":"localhost","apikey":"B6D711FCDE4D4FD5936544120E713976zz"}';
+
+  try
+    Result := TResultEventMessageUpdateClass.FromJsonString(Response);
+  finally
+
+  end;
+end;
+
 procedure TfrmPrincipal.bSetWebhookClick(Sender: TObject);
 begin
   if Trim(edtURLWebhook.Text) = '' then
@@ -222,6 +241,33 @@ begin
     edtEventsSubscribe.SetFocus;
     Exit;
   end;
+
+    (*
+    "events": [
+        // "APPLICATION_STARTUP",
+        "QRCODE_UPDATED",
+        "MESSAGES_SET",
+        "MESSAGES_UPSERT",
+        "MESSAGES_UPDATE",
+        "MESSAGES_DELETE",
+        "SEND_MESSAGE",
+        // "CONTACTS_SET",
+        // "CONTACTS_UPSERT",
+        // "CONTACTS_UPDATE",
+        // "PRESENCE_UPDATE",
+        // "CHATS_SET",
+        // "CHATS_UPSERT",
+        // "CHATS_UPDATE",
+        // "CHATS_DELETE",
+        // "GROUPS_UPSERT",
+        // "GROUP_UPDATE",
+        // "GROUP_PARTICIPANTS_UPDATE",
+        "CONNECTION_UPDATE",
+        "CALL"
+        // "NEW_JWT_TOKEN",
+        // "TYPEBOT_START",
+        // "TYPEBOT_CHANGE_STATUS"]
+      *)
 
   EvolutionAPI1.urlServer := 'http://localhost';
   EvolutionAPI1.Token := edtTokenAPI.Text;
@@ -305,6 +351,8 @@ begin
     sResponse := EvolutionAPI1.SendFileBase64(ed_num.Text, mem_message.Text, Type_File, LBase64, '');
 
   memResponse.Lines.Add(sResponse);
+  memResponse.Lines.Add('');
+
 end;
 
 procedure TfrmPrincipal.btnAudioClick(Sender: TObject);
@@ -404,7 +452,7 @@ begin
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SendContact(ed_num.Text, edtNumberShared.Text, edtNameContactShared.Text, '');
-
+  memResponse.Lines.Add('');
 end;
 
 procedure TfrmPrincipal.btnImagemClick(Sender: TObject);
@@ -650,6 +698,7 @@ begin
   sResponse := EvolutionAPI1.SendText(ed_num.Text, mem_message.Text);
 
   memResponse.Lines.Add(sResponse);
+  memResponse.Lines.Add('');
 
 end;
 
@@ -736,9 +785,15 @@ begin
 
   try
     Result := TResultEventClass.FromJsonString(Response);
+
     memResponse.Lines.Add('instance: ' + Result.instance);
     memResponse.Lines.Add('event: ' + Result.event);
     memResponse.Lines.Add('sender: ' + Result.sender);
+
+    if Assigned(Result.data) then
+    begin
+      memResponse.Lines.Add('pushName: ' + Result.data.pushName);
+    end;
 
     if Assigned(Result.data.key) then
     begin
@@ -746,8 +801,6 @@ begin
       memResponse.Lines.Add('fromMe: ' + BooleanToStr(Result.data.key.fromMe));
       memResponse.Lines.Add('id: ' + Result.data.key.id);
     end;
-
-    memResponse.Lines.Add('pushName: ' + Result.data.pushName);
 
     if Assigned(Result.data.message) then
     begin
@@ -768,15 +821,20 @@ begin
       end;
     end;
 
-    memResponse.Lines.Add('messageType: ' + Result.data.messageType);
-    memResponse.Lines.Add('messageTimestamp: ' + DateTimeToStr(UnixToDateTime(Result.data.messageTimestamp, False)));
-    memResponse.Lines.Add('source: ' + Result.data.source);
+    if Assigned(Result.data) then
+    begin
+      memResponse.Lines.Add('messageType: ' + Result.data.messageType);
+      memResponse.Lines.Add('messageTimestamp: ' + DateTimeToStr(UnixToDateTime(Result.data.messageTimestamp, False)));
+      memResponse.Lines.Add('source: ' + Result.data.source);
+    end;
 
     memResponse.Lines.Add('apikey: ' + Result.apikey);
     memResponse.Lines.Add('date_time: ' + Result.date_time);
     memResponse.Lines.Add('destination: ' + Result.destination);
+    memResponse.Lines.Add('');
 
   except on E: Exception do
+    memResponse.Lines.Add('ERROR ' + e.Message);
   end;
 
 
@@ -840,6 +898,42 @@ begin
   except on E: Exception do
   end;
   }
+
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseMessageUpdate(Sender: TObject; Response: string);
+var
+  Result: uEventsMessageUpdateClasses.TResultEventMessageUpdateClass;
+begin
+
+  memResponse.Lines.Add('' + Response + #13#10);
+
+  try
+    Result := TResultEventMessageUpdateClass.FromJsonString(Response);
+
+    memResponse.Lines.Add('instance: ' + Result.instance);
+    memResponse.Lines.Add('event: ' + Result.event);
+    memResponse.Lines.Add('sender: ' + Result.sender);
+
+    if Assigned(Result.data) then
+    begin
+      memResponse.Lines.Add('remoteJid: ' + Result.data.remoteJid);
+      memResponse.Lines.Add('datetime: ' + DateTimeToStr(UnixToDateTime(Result.data.datetime, False)));
+      memResponse.Lines.Add('fromMe: ' + BooleanToStr(Result.data.fromMe) );
+      memResponse.Lines.Add('id: ' + Result.data.id);
+      memResponse.Lines.Add('status: ' + Result.data.status);
+      memResponse.Lines.Add('owner: ' + Result.data.owner);
+    end;
+
+    memResponse.Lines.Add('apikey: ' + Result.apikey);
+    memResponse.Lines.Add('date_time: ' + Result.date_time);
+    memResponse.Lines.Add('destination: ' + Result.destination);
+    memResponse.Lines.Add('server_url: ' + Result.server_url);
+    memResponse.Lines.Add('');
+
+  except on E: Exception do
+    memResponse.Lines.Add('ERROR ' + e.Message);
+  end;
 
 end;
 

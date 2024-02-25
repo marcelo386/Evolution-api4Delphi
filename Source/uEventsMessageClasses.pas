@@ -54,6 +54,30 @@ type
     class function FromJsonString(AJsonString: string): TMessageContextInfoClass;
   end;
 
+  TOptionsClass = class
+  private
+    FOptionName: String;
+  public
+    property optionName: String read FOptionName write FOptionName;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TOptionsClass;
+  end;
+
+  TPollCreationMessageV3Class = class
+  private
+    FName: String;
+    FOptions: TArray<TOptionsClass>;
+    FSelectableOptionsCount: Extended;
+  public
+    property name: String read FName write FName;
+    property options: TArray<TOptionsClass> read FOptions write FOptions;
+    property selectableOptionsCount: Extended read FSelectableOptionsCount write FSelectableOptionsCount;
+    //destructor Destroy; override;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TPollCreationMessageV3Class;
+  end;
+
+
   TExtendedTextMessageClass = class
   private
     FContextInfo: TMessageContextInfoClass;
@@ -267,6 +291,108 @@ type
     //class function FromJsonString(AJsonString: string): TContactsArrayMessageClass;
   end;
 
+  TKeyEditedMessageClass = class
+  private
+    FFromMe: Boolean;
+    FId: String;
+    FRemoteJid: String;
+  public
+    property fromMe: Boolean read FFromMe write FFromMe;
+    property id: String read FId write FId;
+    property remoteJid: String read FRemoteJid write FRemoteJid;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TKeyClass;
+  end;
+
+  TEditedMessageNewMsgClass = class
+  private
+    FConversation: String;
+  public
+    property conversation: String read FConversation write FConversation;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TEditedMessageClass_001;
+  end;
+
+  TProtocolMessageClass = class
+  private
+    FEditedMessage: TEditedMessageNewMsgClass;
+    FKey: TKeyEditedMessageClass;
+    FTimestampMs: String;
+    FType: String;
+  public
+    property editedMessage: TEditedMessageNewMsgClass read FEditedMessage write FEditedMessage;
+    property key: TKeyEditedMessageClass read FKey write FKey;
+    property timestampMs: String read FTimestampMs write FTimestampMs;
+    property &type: String read FType write FType;
+    //constructor Create;
+    //destructor Destroy; override;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TProtocolMessageClass;
+  end;
+
+  TMessageEditedClass = class
+  private
+    FProtocolMessage: TProtocolMessageClass;
+  public
+    property protocolMessage: TProtocolMessageClass read FProtocolMessage write FProtocolMessage;
+    //constructor Create;
+    //destructor Destroy; override;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TMessageClass;
+  end;
+
+  TEditedMessageClass = class
+  private
+    FMessage: TMessageEditedClass;
+  public
+    property message: TMessageEditedClass read FMessage write FMessage;
+    //constructor Create;
+    //destructor Destroy; override;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TEditedMessageClass;
+  end;
+
+  TKeyReactionMessageClass = class
+  private
+    FFromMe: Boolean;
+    FId: String;
+    FRemoteJid: String;
+  public
+    property fromMe: Boolean read FFromMe write FFromMe;
+    property id: String read FId write FId;
+    property remoteJid: String read FRemoteJid write FRemoteJid;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TKeyClass;
+  end;
+
+  TReactionMessageClass = class
+  private
+    FKey: TKeyReactionMessageClass;
+    FSenderTimestampMs: String;
+    FText: String;
+  public
+    property key: TKeyReactionMessageClass read FKey write FKey;
+    property senderTimestampMs: String read FSenderTimestampMs write FSenderTimestampMs;
+    property text: String read FText write FText;
+    //constructor Create;
+    //destructor Destroy; override;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TReactionMessageClass;
+  end;
+
+  TLocationMessageClass = class
+  private
+    FDegreesLatitude: Extended;
+    FDegreesLongitude: Extended;
+    FJpegThumbnail: String;
+  public
+    property degreesLatitude: Extended read FDegreesLatitude write FDegreesLatitude;
+    property degreesLongitude: Extended read FDegreesLongitude write FDegreesLongitude;
+    property jpegThumbnail: String read FJpegThumbnail write FJpegThumbnail;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TLocationMessageClass;
+  end;
+
   TMessageClass = class
   private
     FConversation: String;
@@ -279,6 +405,10 @@ type
     FContactMessage: TContactMessageClass;
     FContactsArrayMessage: TContactsArrayMessageClass;
     FExtendedTextMessage: TExtendedTextMessageClass;
+    FReactionMessage: TReactionMessageClass;
+    FEditedMessage: TEditedMessageClass;
+    FLocationMessage: TLocationMessageClass;
+    FPollCreationMessageV3: TPollCreationMessageV3Class;
 
   public
     property conversation: String read FConversation write FConversation;
@@ -291,6 +421,10 @@ type
     property contactMessage: TContactMessageClass read FContactMessage write FContactMessage;
     property contactsArrayMessage: TContactsArrayMessageClass read FContactsArrayMessage write FContactsArrayMessage;
     property extendedTextMessage: TExtendedTextMessageClass read FExtendedTextMessage write FExtendedTextMessage;
+    property reactionMessage: TReactionMessageClass read FReactionMessage write FReactionMessage;
+    property editedMessage: TEditedMessageClass read FEditedMessage write FEditedMessage;
+    property locationMessage: TLocationMessageClass read FLocationMessage write FLocationMessage;
+    property pollCreationMessageV3: TPollCreationMessageV3Class read FPollCreationMessageV3 write FPollCreationMessageV3;
 
     constructor Create;
     destructor Destroy; override;
@@ -307,6 +441,8 @@ type
     property fromMe: Boolean read FFromMe write FFromMe;
     property id: String read FId write FId;
     property remoteJid: String read FRemoteJid write FRemoteJid;
+    constructor Create;
+    destructor Destroy; override;
     function ToJsonString: string;
     class function FromJsonString(AJsonString: string): TKeyClass;
   end;
@@ -320,6 +456,16 @@ type
     FOwner: String;
     FPushName: String;
     FSource: String;
+    FremoteJid: String;
+    FfromMe: String;
+    Fid: String;
+    FchatId: String;
+    Fdate: String;
+    Foffline: Boolean;
+    Fstatus: String;
+    FisVideo: Boolean;
+    FisGroup: Boolean;
+    Fdatetime: Int64;
   public
     property key: TKeyClass read FKey write FKey;
     property message: TMessageClass read FMessage write FMessage;
@@ -328,6 +474,17 @@ type
     property owner: String read FOwner write FOwner;
     property pushName: String read FPushName write FPushName;
     property source: String read FSource write FSource;
+    property remoteJid: String read FremoteJid write FremoteJid;
+    property fromMe: String read FfromMe write FfromMe;
+    property id: String read Fid write Fid;
+    property chatId: String read FchatId write FchatId;
+    property date: String read Fdate write Fdate;
+    property status: String read Fstatus write Fstatus;
+    property offline: Boolean read Foffline write Foffline;
+    property isVideo: Boolean read FisVideo write FisVideo;
+    property isGroup: Boolean read FisGroup write FisGroup;
+    property datetime: Int64 read Fdatetime write Fdatetime;
+
     constructor Create;
     destructor Destroy; override;
     function ToJsonString: string;
@@ -380,11 +537,13 @@ constructor TMessageContextInfoClass.Create;
 begin
   inherited;
   FDeviceListMetadata := TDeviceListMetadataClass.Create();
+  FQuotedMessage := TQuotedMessageClass.Create();
 end;
 
 destructor TMessageContextInfoClass.Destroy;
 begin
   FDeviceListMetadata.free;
+  FQuotedMessage.free;
   inherited;
 end;
 
@@ -409,6 +568,13 @@ begin
   FDocumentMessage := TDocumentMessageClass.Create();
   FVideoMessage := TVideoMessageClass.Create();
   FStickerMessage := TStickerMessageClass.Create();
+  FContactMessage := TContactMessageClass.Create();
+  FContactsArrayMessage := TContactsArrayMessageClass.Create();
+  FExtendedTextMessage := TExtendedTextMessageClass.Create();
+  FReactionMessage := TReactionMessageClass.Create();
+  FEditedMessage := TEditedMessageClass.Create();
+  FLocationMessage := TLocationMessageClass.Create();
+  FPollCreationMessageV3 := TPollCreationMessageV3Class.Create();
 end;
 
 destructor TMessageClass.Destroy;
@@ -419,6 +585,13 @@ begin
   FDocumentMessage.free;
   FVideoMessage.free;
   FStickerMessage.free;
+  FContactMessage.free;
+  FContactsArrayMessage.free;
+  FExtendedTextMessage.free;
+  FReactionMessage.free;
+  FEditedMessage.free;
+  FLocationMessage.free;
+  FPollCreationMessageV3.free;
   inherited;
 end;
 
@@ -438,6 +611,17 @@ end;
 function TKeyClass.ToJsonString: string;
 begin
   result := TJson.ObjectToJsonString(self);
+end;
+
+constructor TKeyClass.Create;
+begin
+  inherited;
+end;
+
+destructor TKeyClass.Destroy;
+begin
+
+  inherited;
 end;
 
 class function TKeyClass.FromJsonString(AJsonString: string): TKeyClass;
@@ -492,6 +676,7 @@ end;
 
 class function TResultEventClass.FromJsonString(AJsonString: string): TResultEventClass;
 begin
+  AJsonString := AJsonString;
   result := TJson.JsonToObject<TResultEventClass>(AJsonString)
 end;
 

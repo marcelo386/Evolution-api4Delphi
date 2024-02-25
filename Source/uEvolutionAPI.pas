@@ -28,6 +28,7 @@ type
   {Events}
   TOnRetSendMessage = Procedure(Sender : TObject; Response: string) of object;
   TResponseEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseMessageUpdateEvent = Procedure(Sender : TObject; Response: string) of object;
 
   TEvolutionAPI = class(TComponent)
 
@@ -36,6 +37,7 @@ type
     FToken: string;
     FOnRetSendMessage: TOnRetSendMessage;
     FOnResponse: TResponseEvent;
+    FOnResponseMessageUpdate: TResponseMessageUpdateEvent;
     FPort: Integer;
     FEmoticons: TEvolutionAPIEmoticons;
     Fwebhook_by_events: Boolean;
@@ -98,9 +100,10 @@ type
     property PortWebhook       : Integer                 read FPortWebhook        write FPortWebhook        Default 8020;
     property DDIDefault        : Integer                 read FDDIDefault         write FDDIDefault         Default 55;
 
-    property OnRetSendMessage  : TOnRetSendMessage       read FOnRetSendMessage   write FOnRetSendMessage;
-    property OnResponse        : TResponseEvent          read FOnResponse         write FOnResponse;
-    property Emoticons         : TEvolutionAPIEmoticons  read FEmoticons          Write FEmoticons;
+    property OnRetSendMessage          : TOnRetSendMessage            read FOnRetSendMessage          write FOnRetSendMessage;
+    property OnResponse                : TResponseEvent               read FOnResponse                write FOnResponse;
+    property OnResponseMessageUpdate   : TResponseMessageUpdateEvent  read FOnResponseMessageUpdate   write FOnResponseMessageUpdate;
+    property Emoticons                 : TEvolutionAPIEmoticons       read FEmoticons                 Write FEmoticons;
 
   end;
 
@@ -1732,6 +1735,21 @@ begin
         Response := Req.Body;
         if Assigned(FOnResponse) then
           FOnResponse(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/message-update',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response message-update webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseMessageUpdate) then
+          FOnResponseMessageUpdate(Self, Response);
       end
     );
 

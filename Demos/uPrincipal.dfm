@@ -4434,6 +4434,15 @@ object frmPrincipal: TfrmPrincipal
     TabOrder = 14
     Text = 'http://localhost'
   end
+  object BitBtn3: TBitBtn
+    Left = 272
+    Top = 460
+    Width = 75
+    Height = 25
+    Caption = 'BitBtn3'
+    TabOrder = 15
+    OnClick = BitBtn3Click
+  end
   object ImageList1: TImageList
     DrawingStyle = dsTransparent
     Left = 240
@@ -5386,6 +5395,7 @@ object frmPrincipal: TfrmPrincipal
     DDIDefault = 0
     OnRetSendMessage = EvolutionAPI1RetSendMessage
     OnResponse = EvolutionAPI1Response
+    OnResponseMessageUpdate = EvolutionAPI1ResponseMessageUpdate
     Left = 454
     Top = 532
   end

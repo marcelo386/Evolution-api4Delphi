@@ -142,6 +142,7 @@
         <DCCReference Include="..\Source\uRetMensagem.pas"/>
         <DCCReference Include="..\Source\uEvolutionAPI.pas"/>
         <DCCReference Include="..\Source\uWhatsAppBusinessClasses.pas"/>
+        <DCCReference Include="..\Source\uEventsMessageClasses.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -222,7 +223,7 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="3">
-                <DeployFile LocalName="C:\Executaveis\WPPCloudAPI4DelphiDEMO\EvolutionAPI4DelphiDEMO.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="C:\Executaveis\EvolutionAPI4DelphiDEMO\EvolutionAPI4DelphiDEMO.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>EvolutionAPI4DelphiDEMO.exe</RemoteName>
                         <Overwrite>true</Overwrite>

@@ -10,7 +10,8 @@ uses
   uPrincipal in 'uPrincipal.pas' {frmPrincipal},
   uRetMensagem in '..\Source\uRetMensagem.pas',
   uEvolutionAPI in '..\Source\uEvolutionAPI.pas',
-  uWhatsAppBusinessClasses in '..\Source\uWhatsAppBusinessClasses.pas';
+  uWhatsAppBusinessClasses in '..\Source\uWhatsAppBusinessClasses.pas',
+  uEventsMessageClasses in '..\Source\uEventsMessageClasses.pas';
 
 {$R *.res}
 
