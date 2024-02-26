@@ -68,11 +68,23 @@ type
     function SendListMenu(waid, body, sections, header, footer, Button_Text: string): string;
     function SendContact(waid, phoneNumber, formatted_name, options: string): string;
     function SendLocation(waid, body, Location, header, footer: string): string;
-    function SendReaction(waid, message_id, emoji: string): string;
+    function SendReaction(waid, message_id, emoji, fromMe: string): string;
     function SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string = 'false'): string;
     function MarkIsRead(waid, message_id, fromMe: string): string;
     function DeleteMessage(waid, message_id, fromMe, paticipant: string): string;
     function CheckNumberExists(numbers: string): string;
+    function connectionState(instanceName: string): string;
+    function logout(instanceName: string): string;
+    function DeleteInstance(instanceName: string): string;
+    function RestartInstance(instanceName: string): string;
+    function InstanceConnect(instanceName: string): string;
+    function fetchInstances: string;
+    function findWebhook(instanceName: string): string;
+
+    function findChats: string;
+    function findMessages(remoteJid: string): string;
+    function getBase64FromMediaMessage(id, convertToMp4: string): string;
+
 
     function UploadMedia(FileName: string): string;
     function PostMediaFile(FileName, MediaType: string): string;
@@ -163,6 +175,55 @@ begin
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
         .Post
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak + json + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
+end;
+
+function TEvolutionAPI.connectionState(instanceName: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/connectionState/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        //.AddBody(UTF8Texto)
+        .Get
         .Content;
       //gravar_log(response);
     except
@@ -319,6 +380,56 @@ begin
 
 end;
 
+function TEvolutionAPI.DeleteInstance(instanceName: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/delete/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        //.AddBody(UTF8Texto)
+        .Delete
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+
+  end;
+
+end;
+
 function TEvolutionAPI.DeleteMessage(waid, message_id, fromMe, paticipant: string): string;
 var
   response: string;
@@ -333,15 +444,18 @@ begin
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
+    if Trim(fromMe) = '' then
+      fromMe := 'true';
+
     json :=
       '{ ' +
       '  "id": "' + message_id + '", ' +
       '  "remoteJid": "' + waid + '", ' +
-      '  "fromMe": true, ' +
+      '  "fromMe": ' + fromMe + ' ' +
         // optional
-      '  "paticipant": "' + paticipant + '" ' +
+      //'  "paticipant": "' + paticipant + '" ' +
+      IfThen( Trim(paticipant) <> '' ,'        ,"paticipant": "' + paticipant + '"  ', '') +
       '} ';
-
 
     UTF8Texto := UTF8Encode(json);
     try
@@ -364,7 +478,7 @@ begin
 
     try
       if Assigned(FOnRetSendMessage) then
-        FOnRetSendMessage(Self, 'EMOJI: ' + Response);
+        FOnRetSendMessage(Self, 'deleteMessage: ' + Response);
 
       RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
       Result := RetEnvMensagem.key.id;
@@ -524,6 +638,281 @@ begin
 
 end;
 
+function TEvolutionAPI.fetchInstances: string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/fetchInstances/')
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        //.AddBody(UTF8Texto)
+        .Get
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+
+  end;
+
+end;
+
+function TEvolutionAPI.findChats: string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/findChats/')
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        //.AddBody(UTF8Texto)
+        .Get
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+
+  end;
+
+end;
+
+function TEvolutionAPI.findMessages(remoteJid: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    if (length(remoteJid) = 11) or (length(remoteJid) = 10) then
+      remoteJid := DDIDefault.ToString + remoteJid;
+
+    json :=
+      '{ ' +
+      '  "where": { ' +
+      '    "key": { ' +
+      '      "remoteJid": "' + remoteJid + '" ' +
+      '    } ' +
+      '  } ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+    try
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/chat/findMessages/' + instanceName + '')
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        //MemoLogApiOficial.Lines.Add(json + SLINEBREAK);
+        if Assigned(FOnRetSendMessage) then
+          FOnRetSendMessage(Self, 'Error: ' + e.Message);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+  finally
+  end;
+
+end;
+
+function TEvolutionAPI.findWebhook(instanceName: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/webhook/find/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        //.AddBody(UTF8Texto)
+        .Get
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+
+  end;
+
+end;
+
+function TEvolutionAPI.getBase64FromMediaMessage(id, convertToMp4: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+begin
+(*
+  In this endpoint it is possible to extract the Base64 of the media
+  received in the messages, passing the message ID as a parameter.
+  Make sure that the received message is stored in MongoDB or in a file,
+  otherwise the error 400 - Bad Request will be displayed.
+  If the media type is audio, the mimetype audio/ogg is returned by default.
+  If you need an MP4 file, check the "convertToMp4" option as "true"
+*)
+  Result := '';
+  try
+    if Trim(convertToMp4) = '' then
+      convertToMp4 := 'false';
+
+    Json :=
+      '{ ' +
+      '    "message": { ' +
+      '        "key": { ' +
+      '            "id": "' + id + '" ' +
+      '        } ' +
+      '    }, ' +
+      '    "convertToMp4": ' + convertToMp4 + ' ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      response := TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/getBase64FromMediaMessage/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Put
+        .Content;
+
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak + json + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    Result := response;
+
+  finally
+
+  end;
+
+
+end;
+
 function TEvolutionAPI.MarkIsRead(waid, message_id, fromMe: string): string;
 var
   response: string;
@@ -536,27 +925,29 @@ begin
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
-      json :=
-        '{ ' +
-        '  "read_messages": [ ' +
-        '    { ' +
-        '      "remoteJid": "' + waid + '", ' +
-        '      "fromMe": false, ' +
-        '      "id": "' + message_id + '" ' +
-        '    } ' +
-        '  ] ' +
-        '} ';
+    if Trim(fromMe) = '' then
+      fromMe := 'true';
+
+    json :=
+      '{ ' +
+      '  "read_messages": [ ' +
+      '    { ' +
+      '      "remoteJid": "' + waid + '", ' +
+      '      "fromMe": ' + fromMe + ', ' +
+      '      "id": "' + message_id + '" ' +
+      '    } ' +
+      '  ] ' +
+      '} ';
 
     UTF8Texto := UTF8Encode(json);
 
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/markMessageAsRead/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
-        .Post
+        .Put
         .Content;
-
 
       //gravar_log(response);
     except
@@ -730,7 +1121,7 @@ begin
     UTF8Texto := UTF8Encode(json);
     try
 
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendContact/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -746,7 +1137,7 @@ begin
         //MemoLogApiOficial.Lines.Add(json + SLINEBREAK);
         Result := 'Error ' + e.Message + SLINEBREAK;
         //MemoLogApiOficial.Lines.Add(response);
-        Exit;
+        //Exit;
       end;
     end;
 
@@ -1097,8 +1488,7 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendLocation/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -1285,7 +1675,7 @@ begin
 
 end;
 
-function TEvolutionAPI.SendReaction(waid, message_id, emoji: string): string;
+function TEvolutionAPI.SendReaction(waid, message_id, emoji, fromMe: string): string;
 var
   response: string;
   json: string;
@@ -1294,12 +1684,26 @@ var
 begin
   Result := '';
 
-
   try
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
+    if Trim(fromMe) = '' then
+      fromMe := 'false';
+
     json :=
+      '{ ' +
+      '  "reactionMessage": { ' +
+      '    "key": { ' +
+      //'      "remoteJid": "' + waid + '@s.whatsapp.net", // or {{groupJid}}@g.us" ' +
+      '      "remoteJid": "' + waid + '", ' +
+      '      "fromMe": ' + fromMe + ', ' +
+      '      "id": "' + message_id + '" ' +
+      '    }, ' +
+      '    "reaction": "' + emoji + '" ' +
+      '  } ' +
+      '} ';
+(*
       '{ ' +
       '  "messaging_product": "whatsapp", ' +
       '  "recipient_type": "individual", ' +
@@ -1310,11 +1714,11 @@ begin
       '    "emoji": "' + emoji + '" ' +
       '  } ' +
       '}';
-
+*)
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendReaction/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -1335,8 +1739,9 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, 'EMOJI: ' + Response);
 
-      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
-      Result := RetEnvMensagem.key.id;
+      Result := Response;
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
     except
       on E: Exception do
       begin
@@ -1366,6 +1771,9 @@ begin
 
     reply_body := CaractersWeb(reply_body);
 
+    if Trim(fromMe) = '' then
+      fromMe := 'true';
+
     json :=
       '{ ' +
       '    "number": "' + waid + '", ' +
@@ -1375,7 +1783,7 @@ begin
       '        "quoted": { ' +
       '            "key": { ' +
       '                "remoteJid": "' + reply_remoteJid + '@s.whatsapp.net", ' +
-      '                "fromMe": true, ' +
+      '                "fromMe": ' + fromMe + ', ' +
       '                "id": "' + message_id + '", ' +
       '                "participant": "" ' +
       '            }, ' +
@@ -1405,7 +1813,7 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendText/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -1830,6 +2238,56 @@ begin
   end;
 end;
 
+function TEvolutionAPI.RestartInstance(instanceName: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/restart/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        //.AddBody(UTF8Texto)
+        .Put
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+
+  end;
+
+end;
+
 function TEvolutionAPI.UploadMedia(FileName: string): string;
 var
   http: TIdHTTP;
@@ -2163,6 +2621,105 @@ begin
   finally
     TypeFileList.Free;
   end;
+end;
+
+function TEvolutionAPI.InstanceConnect(instanceName: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/connect/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        //.AddBody(UTF8Texto)
+        .Get
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+
+  end;
+
+end;
+
+function TEvolutionAPI.logout(instanceName: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/logout/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        //.AddBody(UTF8Texto)
+        .Delete
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
 end;
 
 end.

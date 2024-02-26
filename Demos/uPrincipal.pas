@@ -22,7 +22,8 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, System.ImageList, Vcl.ImgList, uWPPCloudAPI,
   uWhatsAppBusinessClasses, IniFiles, System.IOUtils, Vcl.Buttons, Vcl.Imaging.pngimage, System.NetEncoding, DateUtils,
-  uEvolutionAPI, uEventsMessageClasses, uEventsMessageUpdateClasses;
+  uEvolutionAPI, uEventsMessageClasses, uEventsMessageUpdateClasses, IdBaseComponent, IdComponent,
+  IdTCPConnection, IdTCPClient, IdHTTP, System.StrUtils;
 
 type
   TfrmPrincipal = class(TForm)
@@ -76,7 +77,6 @@ type
     Label7: TLabel;
     edtDDI_Default: TEdit;
     Image2: TImage;
-    Label8: TLabel;
     EvolutionAPI1: TEvolutionAPI;
     Label4: TLabel;
     edtPortWebhook: TEdit;
@@ -95,6 +95,10 @@ type
     Label13: TLabel;
     edtUrlServerEvolutionAPI: TEdit;
     BitBtn3: TBitBtn;
+    cFromMe: TComboBox;
+    Label14: TLabel;
+    ProgressBar1: TProgressBar;
+    IdHTTP1: TIdHTTP;
     procedure btnTextoSimplesClick(Sender: TObject);
     procedure btnBotaoSimplesClick(Sender: TObject);
     procedure btnListaMenuClick(Sender: TObject);
@@ -111,7 +115,6 @@ type
     procedure SalvarIni;
     procedure LerConfiguracoes;
     procedure BitBtn1Click(Sender: TObject);
-
     procedure EvolutionAPI1Response(Sender: TObject; Response: string);
     procedure EvolutionAPI1RetSendMessage(Sender: TObject; Response: string);
     procedure bCreateInstanceBasicClick(Sender: TObject);
@@ -120,11 +123,18 @@ type
     procedure bSetWebhookClick(Sender: TObject);
     procedure BitBtn3Click(Sender: TObject);
     procedure EvolutionAPI1ResponseMessageUpdate(Sender: TObject; Response: string);
+    procedure Button2Click(Sender: TObject);
 
   private
     procedure CarregarImagemBase64(const Base64Str: string; const Image: TImage);
     procedure ProcessQRCodeImage;
+    procedure gravar_log(linha: string);
+    function GerarGUID: string;
     function BooleanToStr(Operador: Boolean): String;
+    function Descriptografar(mediakey, CaminhoArqOriginal,
+      CaminhoArqDescriptogrado, Telefone: string): Boolean;
+    function DownloadFile(url, mediakey, mimetype, Telefone, TipoArq, Extensao: string;
+      var AFileName: string; var AFileNameFinal: string): Boolean;
     { Private declarations }
   public
     { Public declarations }
@@ -139,6 +149,43 @@ implementation
 {$R *.dfm}
 
 uses uRetMensagem;
+
+const
+  AutoFileType = 7; // Default define automaticamente o tipo de arquivo
+  ManualFileType = 9;
+
+type
+  TArgArray = record // argumentos passados a DLL
+    Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8: PAnsiChar;
+  end;
+
+function InitModule(SecurityCode: Integer): Integer; cdecl;
+  external 'WhatsDll.dll';
+function Decrypt(ArgCnt: Integer; ArgsArray: Pointer; Callback: Pointer;
+  var ErrorText: PAnsiChar): Integer; cdecl; external 'WhatsDll.dll';
+
+// Function necessária a DLL. Não alterar
+function NewArg(S: ansistring): PAnsiChar;
+begin
+  try
+    GetMem(Result, Length(S) + 4);
+    ZeroMemory(Result, Length(S) + 4);
+    if (Length(S) <> 0) then
+      CopyMemory(Result, @S[1], Length(S));
+  except
+    on E: Exception do
+  end;
+end;
+
+procedure Callback(Progress: Integer); cdecl;
+begin
+  try
+    //application.ProcessMessages;
+    frmPrincipal.ProgressBar1.Position := Progress;
+  except
+    on E: Exception do
+  end;
+end;
 
 procedure TfrmPrincipal.bCreateInstanceBasicClick(Sender: TObject);
 var
@@ -205,7 +252,7 @@ begin
   //SendReaction(waid, message_id, emoji: string)
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
-  sResponse := EvolutionAPI1.MarkIsRead(ed_num.Text, edtMessage_id.Text, 'false');
+  sResponse := EvolutionAPI1.MarkIsRead(ed_num.Text, edtMessage_id.Text, cFromMe.Text);
 
   memResponse.Lines.Add(sResponse);
 end;
@@ -442,7 +489,7 @@ begin
     Exit;
   end;
 
-  if mem_message.Text = '' then
+  if edtNumberShared.Text = '' then
   begin
     ShowMessage('Informe o Número do WhatsApp que deseja Compartilhar');
     mem_message.Setfocus;
@@ -512,6 +559,7 @@ begin
   sResponse := EvolutionAPI1.SendText(ed_num.Text, edtURL.Text, 'true');
 
   memResponse.Lines.Add(sResponse);
+  memResponse.Lines.Add('');
 
 end;
 
@@ -633,7 +681,7 @@ begin
   //SendReaction(waid, message_id, emoji: string)
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
-  sResponse := EvolutionAPI1.SendReaction(ed_num.Text, edtMessage_id.Text, sEmoji);
+  sResponse := EvolutionAPI1.SendReaction(ed_num.Text, edtMessage_id.Text, sEmoji, cFromMe.Text);
 
   memResponse.Lines.Add(sResponse);
 end;
@@ -666,7 +714,7 @@ begin
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
   //function TEvolutionAPI.SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string): string;
-  sResponse := EvolutionAPI1.SendReplies(ed_num.Text, edtMessage_id.Text, mem_message.Text, edtRemoteJidQuoted.Text, mem_Quoted_message.Text, 'true', 'false');
+  sResponse := EvolutionAPI1.SendReplies(ed_num.Text, edtMessage_id.Text, mem_message.Text, edtRemoteJidQuoted.Text, mem_Quoted_message.Text, cFromMe.Text, 'false');
 
   memResponse.Lines.Add(sResponse);
 end;
@@ -697,9 +745,36 @@ begin
   EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SendText(ed_num.Text, mem_message.Text);
 
+  edtMessage_id.Text := sResponse;
+  cFromMe.ItemIndex := 0;
+
   memResponse.Lines.Add(sResponse);
   memResponse.Lines.Add('');
 
+end;
+
+procedure TfrmPrincipal.Button2Click(Sender: TObject);
+begin
+  if Trim(ed_num.Text) = '' then
+  begin
+    ShowMessage('INFORM THE DESTINATION WHATSAPP NUMBER');
+    ed_num.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtMessage_id.Text) = '' then
+  begin
+    ShowMessage('INFORM THE "MESSAGE ID" TO BE SENT REACTION');
+    edtMessage_id.SetFocus;
+    Exit;
+  end;
+
+  //SendReaction(waid, message_id, emoji: string)
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  sResponse := EvolutionAPI1.DeleteMessage(ed_num.Text, edtMessage_id.Text, cFromMe.Text, '');
+
+  memResponse.Lines.Add(sResponse);
 end;
 
 procedure TfrmPrincipal.FormCreate(Sender: TObject);
@@ -717,6 +792,46 @@ begin
   EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
   EvolutionAPI1.PortWebhook := StrToIntDef(edtPortWebhook.Text, 8020);
   EvolutionAPI1.StartServer;
+end;
+
+function TfrmPrincipal.GerarGUID: string;
+var
+  Guid: TGUID;
+begin
+  Guid := TGUID.NewGuid;
+  Result := Guid.ToString;
+end;
+
+procedure TfrmPrincipal.gravar_log(linha: string);
+var
+  nomearq, diretorio: string;
+  arq: TextFile;
+begin
+  try
+    diretorio := ExtractFilePath(ParamStr(0)) + 'Log\';
+    Sleep(1);
+
+    if not DirectoryExists(diretorio) then
+      CreateDir(diretorio);
+
+    nomearq := ExtractFilePath(ParamStr(0)) + 'Log' + '\Log' + FormatDateTime('YYYY-MM-DD',now) + '.log';
+    //nomearq := 'ServidorMultiAtendimento.log';
+    AssignFile(arq, nomearq);
+    try
+      if FileExists(nomearq) then
+        Append(arq)
+      else
+        Rewrite(arq);
+
+      Writeln(arq, FormatDateTime('DD/MM/YYYY', Date) + ' ' +
+        FormatDateTime('HH:MM:SS:ZZ', time) + ' ' + linha);
+      Flush(arq);
+    finally
+      CloseFile(arq);
+    end;
+  except
+  end;
+
 end;
 
 procedure TfrmPrincipal.LerConfiguracoes;
@@ -779,6 +894,8 @@ end;
 procedure TfrmPrincipal.EvolutionAPI1Response(Sender: TObject; Response: string);
 var
   Result: uEventsMessageClasses.TResultEventClass;
+  url, mimetype, mediaKey, filename: string;
+  anexoCriptografado, anexo, extensao, remoteJid, sType, anexo_renomeado: string;
 begin
 
   memResponse.Lines.Add('' + Response + #13#10);
@@ -797,6 +914,12 @@ begin
 
     if Assigned(Result.data.key) then
     begin
+      edtMessage_id.Text := Result.data.key.id;
+      if Result.data.key.fromMe then
+        cFromMe.ItemIndex := 0 else
+        cFromMe.ItemIndex := 1;
+
+      remoteJid := Result.data.key.remoteJid;
       memResponse.Lines.Add('remoteJid: ' + Result.data.key.remoteJid);
       memResponse.Lines.Add('fromMe: ' + BooleanToStr(Result.data.key.fromMe));
       memResponse.Lines.Add('id: ' + Result.data.key.id);
@@ -805,6 +928,137 @@ begin
     if Assigned(Result.data.message) then
     begin
       memResponse.Lines.Add('conversation: ' + Result.data.message.conversation);
+
+      sType := Result.data.messageType;
+
+      if Assigned(Result.data.message.documentMessage)
+      and (Result.data.messageType = 'documentMessage') then
+      begin
+        memResponse.Lines.Add('url: ' + Result.data.message.documentMessage.url);
+        memResponse.Lines.Add('mimetype: ' + Result.data.message.documentMessage.mimetype);
+        memResponse.Lines.Add('mediaKey: ' + Result.data.message.documentMessage.mediaKey);
+        memResponse.Lines.Add('fileName: ' + Result.data.message.documentMessage.fileName);
+        url := Result.data.message.documentMessage.url;
+        mimetype := Result.data.message.documentMessage.mimetype;
+        mediaKey := Result.data.message.documentMessage.mediaKey;
+        filename := Result.data.message.documentMessage.filename;
+        extensao := ExtractFileExt(filename);
+
+        if DownloadFile(url, mediaKey, mimetype, remoteJid, UpperCase(sType), extensao, anexoCriptografado, anexo) then
+        begin
+          Descriptografar(mediaKey, anexoCriptografado, anexo, remoteJid);
+
+          if (FileExists(anexo)) and (pos('.txt', anexo) > 0) then
+          begin
+            anexo_renomeado := StringReplace(anexo, '.txt', '.' + extensao, []);
+            memResponse.Lines.Add('Anexo Renomeado: ' + anexo_renomeado + ' ...');
+
+            if not RenameFile(anexo, anexo_renomeado) then
+            begin
+              memResponse.Lines.Add('Error renaming file!');
+              gravar_log('Error renaming file!');
+            end
+            else
+            begin
+              anexo := anexo_renomeado;
+              memResponse.Lines.Add('Anexo Renomeado: ' + anexo_renomeado + ' OK');
+              gravar_log('Anexo Renomeado: ' + anexo_renomeado + ' OK');
+            end;
+          end;
+        end;
+
+      end
+      else
+      if Assigned(Result.data.message.imageMessage)
+      and (Result.data.messageType = 'imageMessage') then
+      begin
+        memResponse.Lines.Add('url: ' + Result.data.message.imageMessage.url);
+        memResponse.Lines.Add('mimetype: ' + Result.data.message.imageMessage.mimetype);
+        memResponse.Lines.Add('mediaKey: ' + Result.data.message.imageMessage.mediaKey);
+        //memResponse.Lines.Add('fileName: ' + Result.data.message.imageMessage.fileName);
+        url := Result.data.message.documentMessage.url;
+        mimetype := Result.data.message.documentMessage.mimetype;
+        mediaKey := Result.data.message.documentMessage.mediaKey;
+        filename := '';//Result.data.message.documentMessage.filename;
+
+        if DownloadFile(url, mediaKey, mimetype, remoteJid, UpperCase(sType), extensao, anexoCriptografado, anexo) then
+        begin
+          Descriptografar(mediaKey, anexoCriptografado, anexo, remoteJid);
+        end;
+      end
+      else
+      if Assigned(Result.data.message.audioMessage)
+      and (Result.data.messageType = 'audioMessage') then
+      begin
+        memResponse.Lines.Add('url: ' + Result.data.message.imageMessage.url);
+        memResponse.Lines.Add('mimetype: ' + Result.data.message.imageMessage.mimetype);
+        memResponse.Lines.Add('mediaKey: ' + Result.data.message.imageMessage.mediaKey);
+        //memResponse.Lines.Add('fileName: ' + Result.data.message.imageMessage.fileName);
+        url := Result.data.message.documentMessage.url;
+        mimetype := Result.data.message.documentMessage.mimetype;
+        mediaKey := Result.data.message.documentMessage.mediaKey;
+        filename := '';//Result.data.message.documentMessage.filename;
+
+        if DownloadFile(url, mediaKey, mimetype, remoteJid, UpperCase(sType), extensao, anexoCriptografado, anexo) then
+        begin
+          Descriptografar(mediaKey, anexoCriptografado, anexo, remoteJid);
+        end;
+      end
+      else
+      if Assigned(Result.data.message.videoMessage)
+      and (Result.data.messageType = 'videoMessage') then
+      begin
+        memResponse.Lines.Add('url: ' + Result.data.message.imageMessage.url);
+        memResponse.Lines.Add('mimetype: ' + Result.data.message.imageMessage.mimetype);
+        memResponse.Lines.Add('mediaKey: ' + Result.data.message.imageMessage.mediaKey);
+        //memResponse.Lines.Add('fileName: ' + Result.data.message.imageMessage.fileName);
+        url := Result.data.message.documentMessage.url;
+        mimetype := Result.data.message.documentMessage.mimetype;
+        mediaKey := Result.data.message.documentMessage.mediaKey;
+        filename := '';//Result.data.message.documentMessage.filename;
+
+        if DownloadFile(url, mediaKey, mimetype, remoteJid, UpperCase(sType), extensao, anexoCriptografado, anexo) then
+        begin
+          Descriptografar(mediaKey, anexoCriptografado, anexo, remoteJid);
+        end;
+      end
+      else
+      if Assigned(Result.data.message.stickerMessage)
+      and (Result.data.messageType = 'stickerMessage') then
+      begin
+        memResponse.Lines.Add('url: ' + Result.data.message.imageMessage.url);
+        memResponse.Lines.Add('mimetype: ' + Result.data.message.imageMessage.mimetype);
+        memResponse.Lines.Add('mediaKey: ' + Result.data.message.imageMessage.mediaKey);
+        //memResponse.Lines.Add('fileName: ' + Result.data.message.imageMessage.fileName);
+        url := Result.data.message.documentMessage.url;
+        mimetype := Result.data.message.documentMessage.mimetype;
+        mediaKey := Result.data.message.documentMessage.mediaKey;
+        filename := '';//Result.data.message.documentMessage.filename;
+
+        if DownloadFile(url, mediaKey, mimetype, remoteJid, UpperCase(sType), extensao, anexoCriptografado, anexo) then
+        begin
+          Descriptografar(mediaKey, anexoCriptografado, anexo, remoteJid);
+
+          if (FileExists(anexo)) and (pos('.jpg', anexo) > 0) and (UpperCase(sType) = 'STICKER') then
+          begin
+            extensao := '.webp';
+            anexo_renomeado := StringReplace(anexo, '.jpg', '.' + extensao, []);
+            memResponse.Lines.Add('Anexo Renomeado: ' + anexo_renomeado + ' ...');
+
+            if not RenameFile(anexo, anexo_renomeado) then
+            begin
+              //GeraLog('RenameFile', 'Error renaming file!');
+              memResponse.Lines.Add('Error renaming file!');
+            end
+            else
+            begin
+              anexo := anexo_renomeado;
+              memResponse.Lines.Add('Anexo Renomeado: ' + anexo_renomeado + ' OK');
+            end;
+          end;
+        end;
+      end;
+
 
       if Assigned(Result.data.message.messageContextInfo) then
       begin
@@ -988,6 +1242,222 @@ begin
     LInput.Free;
     LOutput.Free;
   end;
+end;
+
+function TfrmPrincipal.Descriptografar(mediakey, CaminhoArqOriginal, CaminhoArqDescriptogrado, Telefone: string): Boolean;
+var
+  Args: TArgArray;
+  Err: PAnsiChar;
+  Res: Integer;
+begin
+  Result := False;
+
+  // DLL deve estar na mesma pasta do executável
+
+  { Task := TTask.Create(
+    Procedure
+    begin }
+
+  ProgressBar1.Position := 0;
+  // InitModule(xxxxxxx);  // Seu número de série
+  try
+    // InitModule(18352850); // Seu número de série
+    //18352437
+    InitModule(18352456);
+
+    gravar_log('frmPrincipal.Descriptografar( ' + mediakey + ', ' + CaminhoArqOriginal + ', ' +
+      CaminhoArqDescriptogrado + ', ' + Telefone + ' )');
+
+    // passe somente os argumentos indicados
+    Args.Arg0 := NewArg('');
+    Args.Arg1 := NewArg('--key');
+    Args.Arg2 := NewArg(mediakey); // Media Key <<<<<<<
+    Args.Arg3 := NewArg('--out');
+    Args.Arg4 := NewArg(CaminhoArqDescriptogrado); // Arquivo de Saída
+    // arquivo de saida <<<<<<
+    Args.Arg5 := NewArg('--in');
+    Args.Arg6 := NewArg(CaminhoArqOriginal); // Arquivo de Entrada  <<<<<
+    Args.Arg7 := NewArg('');
+    Args.Arg8 := NewArg('');
+
+    Err := nil;
+    Res := Decrypt(AutoFileType, @Args, @Callback, Err);
+
+    FreeMem(Args.Arg0);
+    FreeMem(Args.Arg1);
+    FreeMem(Args.Arg2);
+    FreeMem(Args.Arg3);
+    FreeMem(Args.Arg4);
+    FreeMem(Args.Arg5);
+    FreeMem(Args.Arg6);
+    FreeMem(Args.Arg7);
+    FreeMem(Args.Arg8);
+
+    if (Res = ERROR_SUCCESS) then
+    begin
+      memResponse.Lines.Add('Decriptação finalizada');
+      gravar_log('Decriptação finalizada');
+      ProgressBar1.Position := 0;
+      Result := True;
+      // MessageBox(frmPrincipal.Handle, 'Decriptação finalizada.', 'Done', MB_ICONINFORMATION)
+    end
+    else
+    begin
+      gravar_log('Decriptação falhou ' + PChar(WideString(Err)));
+      memResponse.Lines.Add('Decriptação falhou ' + PChar(WideString(Err)));
+      ProgressBar1.Position := 0;
+      Result := False;
+      // MessageBox(frmPrincipal.Handle, PChar(WideString(Err)), 'Erro!', MB_ICONERROR);
+    end;
+
+  except
+    on E: Exception do
+      gravar_log('ERRO Descriptografar ' + E.Message);
+  end;
+
+  { end);
+
+    Task.Start; }
+
+end;
+
+function TfrmPrincipal.DownloadFile(url, mediakey, mimetype, Telefone, TipoArq, Extensao: string; var AFileName, AFileNameFinal: string): Boolean;
+var
+  IdHTTP1: TIdHTTP;
+  Stream: TMemoryStream;
+  FileName, FileNameFinal, AuxEntensao: string;
+  diretorio, imagem, arq : string;
+  Tentativas: Integer;
+  ErroBaixarArquivo : Boolean;
+begin
+  Result := false;
+
+  // Url := 'https://mmg.whatsapp.net/d/f/At9EfaNcUPVY_LvjD2ZQf2GyvypGHKORyinezQ8GdxvL.enc';
+  // Filename := 'At9EfaNcUPVY_LvjD2ZQf2GyvypGHKORyinezQ8GdxvL.jpg';
+
+  gravar_log('DownloadFile(' + url + ', ' + mediakey + ', ' + mimetype + ', ' + Telefone + ', ' + TipoArq + ', ' + Extensao + ')');
+
+  diretorio := ExtractFilePath(ParamStr(0)) + 'temp\';
+  Sleep(1);
+
+  if not DirectoryExists(diretorio) then
+    CreateDir(diretorio);
+
+  arq     :=  GerarGUID;
+  imagem  :=  diretorio + arq;
+  Sleep(1);
+
+  case AnsiIndexStr(UpperCase(TipoArq), ['AUDIOMESSAGE', 'IMAGEMESSAGE', 'VIDEOMESSAGE', 'AUDIOMESSAGE', 'DOCUMENTMESSAGE', 'STICKERMESSAGE']) of
+    0:
+      begin
+        FileName := imagem + '.enc';
+        FileNameFinal := imagem + '.mp3';
+      end;
+    1:
+      begin
+        if mimetype = 'image/gif' then
+        begin
+          FileName := imagem + '.enc';
+          FileNameFinal := imagem + '.mp4';
+        end
+        else
+        begin
+          FileName := imagem + '.enc';
+          FileNameFinal := imagem + '.jpg';
+        end;
+      end;
+    2:
+      begin
+        if mimetype = 'image/gif' then
+        begin
+          FileName := imagem + '.enc';
+          FileNameFinal := imagem + '.mp4';
+        end
+        else
+        begin
+          FileName := imagem + '.enc';
+          FileNameFinal := imagem + '.mp4';
+        end;
+      end;
+    3:
+      begin
+        FileName := imagem + '.enc';
+        FileNameFinal := imagem + '.mp3';
+      end;
+    4:
+      begin
+        FileName := imagem + '.enc';
+        FileNameFinal := imagem + '.txt';
+      end;
+    5:
+      begin
+        FileName := imagem + '.enc';
+        FileNameFinal := imagem + '.jpg';
+      end
+      else
+      begin
+        FileName := imagem + '.enc';
+        FileNameFinal := imagem + '.txt';
+      end;
+  end;
+
+
+  AFileName := FileName;
+  AFileNameFinal := FileNameFinal;
+
+
+  //if cExibeLog.Checked then
+  begin
+    memResponse.Lines.Add('FileName: ' + FileName);
+    memResponse.Lines.Add('FileNameFinal: ' + FileNameFinal);
+  end;
+
+  gravar_log('FileName: ' + FileName);
+  gravar_log('FileNameFinal: ' + FileNameFinal);
+
+
+  Tentativas := 0;
+
+  while Tentativas < 10 do
+  begin
+    IdHTTP1 := TIdHTTP.Create(self);
+    //IdHTTP1.OnWork := IdHTTPWork;
+    //IdHTTP1.OnWorkbegin := IdHTTPWorkbegin;
+
+    Stream := TMemoryStream.Create;
+    try
+      try
+        IdHTTP1.Get(url, Stream);
+        Stream.SaveToFile(FileName);
+
+        //Descriptografar(mediakey, FileName, FileNameFinal, Telefone);
+        ErroBaixarArquivo := False;
+        Result := True;
+        Break;
+
+      except
+        on E: Exception do
+        begin
+          ErroBaixarArquivo := True;
+          Result := False;
+          gravar_log('Falhou o DownloadFile Tentativas(' + IntToStr(Tentativas) + ')' + #13#10 + ' MSG. ORIGINAL: ' + e.Message);
+        end;
+      end;
+
+    finally
+      Stream.DisposeOf;
+      IdHTTP1.DisposeOf;
+    end;
+
+    Sleep(500);
+    Inc(Tentativas);
+  end;
+
+
+  { end);
+
+    Task.Start; }
+
 end;
 
 {procedure TfrmPrincipal.CarregarImagemBase64(const Base64Str: string; const Image: TImage);
