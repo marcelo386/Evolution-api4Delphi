@@ -29,6 +29,9 @@ type
   TOnRetSendMessage = Procedure(Sender : TObject; Response: string) of object;
   TResponseEvent = Procedure(Sender : TObject; Response: string) of object;
   TResponseMessageUpdateEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseQrcodeUpdateEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseConnectionUpdateEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseCallEvent = Procedure(Sender : TObject; Response: string) of object;
 
   TEvolutionAPI = class(TComponent)
 
@@ -38,6 +41,8 @@ type
     FOnRetSendMessage: TOnRetSendMessage;
     FOnResponse: TResponseEvent;
     FOnResponseMessageUpdate: TResponseMessageUpdateEvent;
+    FOnResponseQrcodeUpdate: TResponseQrcodeUpdateEvent;
+
     FPort: Integer;
     FEmoticons: TEvolutionAPIEmoticons;
     Fwebhook_by_events: Boolean;
@@ -47,6 +52,8 @@ type
     Fqrcode: Boolean;
     FurlServer: string;
     FPortWebhook: Integer;
+    FOnResponseConnectionUpdate: TResponseConnectionUpdateEvent;
+    FOnResponseCallUpdate: TResponseCallEvent;
     function CaractersWeb(vText: string): string;
 
   protected
@@ -112,10 +119,14 @@ type
     property PortWebhook       : Integer                 read FPortWebhook        write FPortWebhook        Default 8020;
     property DDIDefault        : Integer                 read FDDIDefault         write FDDIDefault         Default 55;
 
-    property OnRetSendMessage          : TOnRetSendMessage            read FOnRetSendMessage          write FOnRetSendMessage;
-    property OnResponse                : TResponseEvent               read FOnResponse                write FOnResponse;
-    property OnResponseMessageUpdate   : TResponseMessageUpdateEvent  read FOnResponseMessageUpdate   write FOnResponseMessageUpdate;
-    property Emoticons                 : TEvolutionAPIEmoticons       read FEmoticons                 Write FEmoticons;
+    property OnRetSendMessage           : TOnRetSendMessage               read FOnRetSendMessage            write FOnRetSendMessage;
+    property OnResponse                 : TResponseEvent                  read FOnResponse                  write FOnResponse;
+    property OnResponseMessageUpdate    : TResponseMessageUpdateEvent     read FOnResponseMessageUpdate     write FOnResponseMessageUpdate;
+    property OnResponseQrcodeUpdate     : TResponseQrcodeUpdateEvent      read FOnResponseQrcodeUpdate      write FOnResponseQrcodeUpdate;
+    property OnResponseConnectionUpdate : TResponseConnectionUpdateEvent  read FOnResponseConnectionUpdate  write FOnResponseConnectionUpdate;
+    property OnResponseCallUpdate       : TResponseCallEvent              read FOnResponseCallUpdate        write FOnResponseCallUpdate;
+
+    property Emoticons                : TEvolutionAPIEmoticons       read FEmoticons                 write FEmoticons;
 
   end;
 
@@ -2160,6 +2171,52 @@ begin
           FOnResponseMessageUpdate(Self, Response);
       end
     );
+
+  THorse
+    .Post('/responsewebhook/qrcode-updated',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response qrcode-updated webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseQrcodeUpdate) then
+          FOnResponseQrcodeUpdate(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/connection-update',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response connection-update webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseConnectionUpdate) then
+          FOnResponseConnectionUpdate(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/call',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response call webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseQrcodeUpdate) then
+          FOnResponseQrcodeUpdate(Self, Response);
+      end
+    );
+
 
   if PortWebhook = 0 then
     PortWebhook := 8020;

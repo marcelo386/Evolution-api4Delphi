@@ -895,7 +895,7 @@ procedure TfrmPrincipal.EvolutionAPI1Response(Sender: TObject; Response: string)
 var
   Result: uEventsMessageClasses.TResultEventClass;
   url, mimetype, mediaKey, filename: string;
-  anexoCriptografado, anexo, extensao, remoteJid, sType, anexo_renomeado: string;
+  anexoCriptografado, anexo, extensao, remoteJid, sType, anexo_renomeado, caption: string;
 begin
 
   memResponse.Lines.Add('' + Response + #13#10);
@@ -938,9 +938,11 @@ begin
         memResponse.Lines.Add('mimetype: ' + Result.data.message.documentMessage.mimetype);
         memResponse.Lines.Add('mediaKey: ' + Result.data.message.documentMessage.mediaKey);
         memResponse.Lines.Add('fileName: ' + Result.data.message.documentMessage.fileName);
+        memResponse.Lines.Add('caption: ' + Result.data.message.documentMessage.caption);
         url := Result.data.message.documentMessage.url;
         mimetype := Result.data.message.documentMessage.mimetype;
         mediaKey := Result.data.message.documentMessage.mediaKey;
+        caption := Result.data.message.documentMessage.caption;
         filename := Result.data.message.documentMessage.filename;
         extensao := ExtractFileExt(filename);
 
@@ -975,11 +977,13 @@ begin
         memResponse.Lines.Add('url: ' + Result.data.message.imageMessage.url);
         memResponse.Lines.Add('mimetype: ' + Result.data.message.imageMessage.mimetype);
         memResponse.Lines.Add('mediaKey: ' + Result.data.message.imageMessage.mediaKey);
+        memResponse.Lines.Add('caption: ' + Result.data.message.imageMessage.caption);
         //memResponse.Lines.Add('fileName: ' + Result.data.message.imageMessage.fileName);
-        url := Result.data.message.documentMessage.url;
-        mimetype := Result.data.message.documentMessage.mimetype;
-        mediaKey := Result.data.message.documentMessage.mediaKey;
-        filename := '';//Result.data.message.documentMessage.filename;
+        url := Result.data.message.imageMessage.url;
+        mimetype := Result.data.message.imageMessage.mimetype;
+        mediaKey := Result.data.message.imageMessage.mediaKey;
+        filename := '';//Result.data.message.imageMessage.filename;
+        caption := Result.data.message.imageMessage.caption;
 
         if DownloadFile(url, mediaKey, mimetype, remoteJid, UpperCase(sType), extensao, anexoCriptografado, anexo) then
         begin
@@ -990,14 +994,15 @@ begin
       if Assigned(Result.data.message.audioMessage)
       and (Result.data.messageType = 'audioMessage') then
       begin
-        memResponse.Lines.Add('url: ' + Result.data.message.imageMessage.url);
-        memResponse.Lines.Add('mimetype: ' + Result.data.message.imageMessage.mimetype);
-        memResponse.Lines.Add('mediaKey: ' + Result.data.message.imageMessage.mediaKey);
-        //memResponse.Lines.Add('fileName: ' + Result.data.message.imageMessage.fileName);
-        url := Result.data.message.documentMessage.url;
-        mimetype := Result.data.message.documentMessage.mimetype;
-        mediaKey := Result.data.message.documentMessage.mediaKey;
-        filename := '';//Result.data.message.documentMessage.filename;
+        memResponse.Lines.Add('url: ' + Result.data.message.audioMessage.url);
+        memResponse.Lines.Add('mimetype: ' + Result.data.message.audioMessage.mimetype);
+        memResponse.Lines.Add('mediaKey: ' + Result.data.message.audioMessage.mediaKey);
+        //memResponse.Lines.Add('fileName: ' + Result.data.message.audioMessage.fileName);
+        url := Result.data.message.audioMessage.url;
+        mimetype := Result.data.message.audioMessage.mimetype;
+        mediaKey := Result.data.message.audioMessage.mediaKey;
+        filename := '';//Result.data.message.audioMessage.filename;
+
 
         if DownloadFile(url, mediaKey, mimetype, remoteJid, UpperCase(sType), extensao, anexoCriptografado, anexo) then
         begin
@@ -1008,14 +1013,16 @@ begin
       if Assigned(Result.data.message.videoMessage)
       and (Result.data.messageType = 'videoMessage') then
       begin
-        memResponse.Lines.Add('url: ' + Result.data.message.imageMessage.url);
-        memResponse.Lines.Add('mimetype: ' + Result.data.message.imageMessage.mimetype);
-        memResponse.Lines.Add('mediaKey: ' + Result.data.message.imageMessage.mediaKey);
-        //memResponse.Lines.Add('fileName: ' + Result.data.message.imageMessage.fileName);
-        url := Result.data.message.documentMessage.url;
-        mimetype := Result.data.message.documentMessage.mimetype;
-        mediaKey := Result.data.message.documentMessage.mediaKey;
-        filename := '';//Result.data.message.documentMessage.filename;
+        memResponse.Lines.Add('url: ' + Result.data.message.videoMessage.url);
+        memResponse.Lines.Add('mimetype: ' + Result.data.message.videoMessage.mimetype);
+        memResponse.Lines.Add('mediaKey: ' + Result.data.message.videoMessage.mediaKey);
+        memResponse.Lines.Add('caption: ' + Result.data.message.videoMessage.caption);
+        //memResponse.Lines.Add('fileName: ' + Result.data.message.videoMessage.fileName);
+        url := Result.data.message.videoMessage.url;
+        mimetype := Result.data.message.videoMessage.mimetype;
+        mediaKey := Result.data.message.videoMessage.mediaKey;
+        filename := '';//Result.data.message.videoMessage.filename;
+        caption := Result.data.message.videoMessage.caption;
 
         if DownloadFile(url, mediaKey, mimetype, remoteJid, UpperCase(sType), extensao, anexoCriptografado, anexo) then
         begin
@@ -1026,20 +1033,20 @@ begin
       if Assigned(Result.data.message.stickerMessage)
       and (Result.data.messageType = 'stickerMessage') then
       begin
-        memResponse.Lines.Add('url: ' + Result.data.message.imageMessage.url);
-        memResponse.Lines.Add('mimetype: ' + Result.data.message.imageMessage.mimetype);
-        memResponse.Lines.Add('mediaKey: ' + Result.data.message.imageMessage.mediaKey);
-        //memResponse.Lines.Add('fileName: ' + Result.data.message.imageMessage.fileName);
-        url := Result.data.message.documentMessage.url;
-        mimetype := Result.data.message.documentMessage.mimetype;
-        mediaKey := Result.data.message.documentMessage.mediaKey;
-        filename := '';//Result.data.message.documentMessage.filename;
+        memResponse.Lines.Add('url: ' + Result.data.message.stickerMessage.url);
+        memResponse.Lines.Add('mimetype: ' + Result.data.message.stickerMessage.mimetype);
+        memResponse.Lines.Add('mediaKey: ' + Result.data.message.stickerMessage.mediaKey);
+        //memResponse.Lines.Add('fileName: ' + Result.data.message.stickerMessage.fileName);
+        url := Result.data.message.stickerMessage.url;
+        mimetype := Result.data.message.stickerMessage.mimetype;
+        mediaKey := Result.data.message.stickerMessage.mediaKey;
+        filename := '';//Result.data.message.stickerMessage.filename;
 
         if DownloadFile(url, mediaKey, mimetype, remoteJid, UpperCase(sType), extensao, anexoCriptografado, anexo) then
         begin
           Descriptografar(mediaKey, anexoCriptografado, anexo, remoteJid);
 
-          if (FileExists(anexo)) and (pos('.jpg', anexo) > 0) and (UpperCase(sType) = 'STICKER') then
+          if (FileExists(anexo)) and (pos('.jpg', anexo) > 0) and (UpperCase(sType) = 'STICKERMESSAGE') then
           begin
             extensao := '.webp';
             anexo_renomeado := StringReplace(anexo, '.jpg', '.' + extensao, []);
@@ -1401,10 +1408,8 @@ begin
       end;
   end;
 
-
   AFileName := FileName;
   AFileNameFinal := FileNameFinal;
-
 
   //if cExibeLog.Checked then
   begin
@@ -1414,7 +1419,6 @@ begin
 
   gravar_log('FileName: ' + FileName);
   gravar_log('FileNameFinal: ' + FileNameFinal);
-
 
   Tentativas := 0;
 
