@@ -669,7 +669,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 12
       Visible = False
-      ExplicitTop = 514
     end
     object btnLink: TButton
       AlignWithMargins = True
@@ -683,7 +682,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 7
       OnClick = btnLinkClick
-      ExplicitLeft = 3
     end
     object btnImagemBotao: TButton
       AlignWithMargins = True
@@ -697,7 +695,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 6
       Visible = False
-      ExplicitTop = 421
     end
     object btnImagem: TButton
       AlignWithMargins = True
@@ -711,7 +708,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 5
       OnClick = btnImagemClick
-      ExplicitTop = 111
     end
     object btnVideoBotao: TButton
       AlignWithMargins = True
@@ -725,7 +721,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 4
       Visible = False
-      ExplicitTop = 390
     end
     object btnVideo: TButton
       AlignWithMargins = True
@@ -740,7 +735,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 3
       Visible = False
-      ExplicitTop = 359
     end
     object btnListaMenu: TButton
       AlignWithMargins = True
@@ -756,7 +750,6 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 2
       Visible = False
       OnClick = btnListaMenuClick
-      ExplicitLeft = 7
     end
     object btnBotaoSimples: TButton
       AlignWithMargins = True
@@ -772,7 +765,6 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 1
       Visible = False
       OnClick = btnBotaoSimplesClick
-      ExplicitTop = 49
     end
     object btnTextoSimples: TButton
       AlignWithMargins = True
@@ -800,7 +792,6 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 8
       Visible = False
       OnClick = btnAudioClick
-      ExplicitTop = 452
     end
     object btnContato: TButton
       AlignWithMargins = True
@@ -814,7 +805,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 10
       OnClick = btnContatoClick
-      ExplicitLeft = 21
     end
     object btnSticker: TButton
       AlignWithMargins = True
@@ -829,7 +819,6 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 9
       Visible = False
       OnClick = btnStickerClick
-      ExplicitTop = 483
     end
     object btnLocalizacao: TButton
       AlignWithMargins = True
@@ -843,7 +832,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 11
       OnClick = btnLocalizacaoClick
-      ExplicitLeft = 13
     end
     object btnArquivo: TButton
       AlignWithMargins = True
@@ -857,7 +845,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 13
       OnClick = btnArquivoClick
-      ExplicitLeft = 3
     end
     object Button2: TButton
       AlignWithMargins = True
@@ -871,7 +858,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 14
       OnClick = Button2Click
-      ExplicitLeft = 3
     end
     object btnReagir: TButton
       AlignWithMargins = True
@@ -885,7 +871,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 15
       OnClick = btnReagirClick
-      ExplicitLeft = 7
     end
     object btnResponder: TButton
       AlignWithMargins = True
@@ -899,7 +884,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 16
       OnClick = btnResponderClick
-      ExplicitLeft = 7
     end
     object BitBtn2: TButton
       AlignWithMargins = True
@@ -913,8 +897,6 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 17
       OnClick = BitBtn2Click
-      ExplicitLeft = 7
-      ExplicitTop = 257
     end
   end
   object memResponse: TMemo
@@ -2007,6 +1989,23 @@ object frmPrincipal: TfrmPrincipal
     OnRetSendMessage = EvolutionAPI1RetSendMessage
     OnResponse = EvolutionAPI1Response
     OnResponseMessageUpdate = EvolutionAPI1ResponseMessageUpdate
+    OnResponseQrcodeUpdate = EvolutionAPI1ResponseQrcodeUpdate
+    OnResponseConnectionUpdate = EvolutionAPI1ResponseConnectionUpdate
+    OnResponseCallUpdate = EvolutionAPI1ResponseCallUpdate
+    OnResponseSEND_MESSAGE = EvolutionAPI1ResponseSEND_MESSAGE
+    OnResponseMESSAGES_SET = EvolutionAPI1ResponseMESSAGES_SET
+    OnResponseCONTACTS_SET = EvolutionAPI1ResponseCONTACTS_SET
+    OnResponseCONTACTS_UPSERT = EvolutionAPI1ResponseCONTACTS_UPSERT
+    OnResponseCONTACTS_UPDATE = EvolutionAPI1ResponseCONTACTS_UPDATE
+    OnResponsePRESENCE_UPDATE = EvolutionAPI1ResponsePRESENCE_UPDATE
+    OnResponseCHATS_SET = EvolutionAPI1ResponseCHATS_SET
+    OnResponseCHATS_UPSERT = EvolutionAPI1ResponseCHATS_UPSERT
+    OnResponseCHATS_UPDATE = EvolutionAPI1ResponseCHATS_UPDATE
+    OnResponseCHATS_DELETE = EvolutionAPI1ResponseCHATS_DELETE
+    OnResponseGROUPS_SET = EvolutionAPI1ResponseGROUPS_SET
+    OnResponseGROUPS_UPSERT = EvolutionAPI1ResponseGROUPS_UPSERT
+    OnResponseGROUP_UPDATE = EvolutionAPI1ResponseGROUP_UPDATE
+    OnResponseGROUP_PARTICIPANTS_UPDATE = EvolutionAPI1ResponseGROUP_PARTICIPANTS_UPDATE
     Left = 246
     Top = 340
   end

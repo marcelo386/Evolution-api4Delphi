@@ -32,6 +32,24 @@ type
   TResponseQrcodeUpdateEvent = Procedure(Sender : TObject; Response: string) of object;
   TResponseConnectionUpdateEvent = Procedure(Sender : TObject; Response: string) of object;
   TResponseCallEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseSEND_MESSAGEEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseMESSAGES_SETEvent = Procedure(Sender : TObject; Response: string) of object;
+
+  TResponseCONTACTS_SETEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseCONTACTS_UPSERTEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseCONTACTS_UPDATEEvent = Procedure(Sender : TObject; Response: string) of object;
+
+  TResponsePRESENCE_UPDATEEvent = Procedure(Sender : TObject; Response: string) of object;
+
+  TResponseCHATS_SETEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseCHATS_UPSERTEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseCHATS_UPDATEEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseCHATS_DELETEEvent = Procedure(Sender : TObject; Response: string) of object;
+
+  TResponseGROUPS_SETEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseGROUPS_UPSERTEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseGROUP_UPDATEEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseGROUP_PARTICIPANTS_UPDATEEvent = Procedure(Sender : TObject; Response: string) of object;
 
   TEvolutionAPI = class(TComponent)
 
@@ -54,6 +72,22 @@ type
     FPortWebhook: Integer;
     FOnResponseConnectionUpdate: TResponseConnectionUpdateEvent;
     FOnResponseCallUpdate: TResponseCallEvent;
+
+    FOnResponseSEND_MESSAGE: TResponseSEND_MESSAGEEvent;
+    FOnResponseMESSAGES_SET: TResponseMESSAGES_SETEvent;
+    FOnResponseCONTACTS_SET: TResponseCONTACTS_SETEvent;
+    FOnResponseCONTACTS_UPSERT: TResponseCONTACTS_UPSERTEvent;
+    FOnResponseCONTACTS_UPDATE: TResponseCONTACTS_UPDATEEvent;
+    FOnResponseCHATS_SET: TResponseCHATS_SETEvent;
+
+    FOnResponsePRESENCE_UPDATE: TResponsePRESENCE_UPDATEEvent;
+    FOnResponseCHATS_UPSERT: TResponseCHATS_UPSERTEvent;
+    FOnResponseCHATS_UPDATE: TResponseCHATS_UPDATEEvent;
+    FOnResponseCHATS_DELETE: TResponseCHATS_DELETEEvent;
+    FOnResponseGROUPS_UPSERT: TResponseGROUPS_UPSERTEvent;
+    FOnResponseGROUP_PARTICIPANTS_UPDATE: TResponseGROUP_PARTICIPANTS_UPDATEEvent;
+    FOnResponseGROUP_UPDATE: TResponseGROUP_UPDATEEvent;
+    FOnResponseGROUPS_SET: TResponseGROUPS_SETEvent;
     function CaractersWeb(vText: string): string;
 
   protected
@@ -64,6 +98,7 @@ type
     function CreateInstanceBasic(instanceName, tokenInstancia, number: string; qrcode: Boolean): string;
     function CreateInstanceWithWebhook(instanceName, token, number, urlWebhook, eventos: string; qrcode, webhook_by_events: Boolean): string;
     function SetWebhook(url, events: string; webhook_by_events, webhook_base64: Boolean): string;
+    function SetSettings(reject_call, msg_call, groups_ignore, always_online, read_messages, read_status: string): string;
     function SendText(waid, body: string; previewurl: string = 'false'): string;
     function SendFile(waid, body, typeFile, url: string; const filename: string = ''): string;
     function SendFileBase64(waid, body, typeFile, Base64: string; const filename: string = ''): string;
@@ -125,6 +160,44 @@ type
     property OnResponseQrcodeUpdate     : TResponseQrcodeUpdateEvent      read FOnResponseQrcodeUpdate      write FOnResponseQrcodeUpdate;
     property OnResponseConnectionUpdate : TResponseConnectionUpdateEvent  read FOnResponseConnectionUpdate  write FOnResponseConnectionUpdate;
     property OnResponseCallUpdate       : TResponseCallEvent              read FOnResponseCallUpdate        write FOnResponseCallUpdate;
+
+    property OnResponseSEND_MESSAGE     : TResponseSEND_MESSAGEEvent      read FOnResponseSEND_MESSAGE      write FOnResponseSEND_MESSAGE;
+    property OnResponseMESSAGES_SET     : TResponseMESSAGES_SETEvent      read FOnResponseMESSAGES_SET      write FOnResponseMESSAGES_SET;
+    property OnResponseCONTACTS_SET     : TResponseCONTACTS_SETEvent      read FOnResponseCONTACTS_SET      write FOnResponseCONTACTS_SET;
+    property OnResponseCONTACTS_UPSERT  : TResponseCONTACTS_UPSERTEvent   read FOnResponseCONTACTS_UPSERT   write FOnResponseCONTACTS_UPSERT;
+    property OnResponseCONTACTS_UPDATE  : TResponseCONTACTS_UPDATEEvent   read FOnResponseCONTACTS_UPDATE   write FOnResponseCONTACTS_UPDATE;
+
+    property OnResponsePRESENCE_UPDATE  : TResponsePRESENCE_UPDATEEvent   read FOnResponsePRESENCE_UPDATE   write FOnResponsePRESENCE_UPDATE;
+
+    property OnResponseCHATS_SET        : TResponseCHATS_SETEvent         read FOnResponseCHATS_SET         write FOnResponseCHATS_SET;
+    property OnResponseCHATS_UPSERT     : TResponseCHATS_UPSERTEvent      read FOnResponseCHATS_UPSERT      write FOnResponseCHATS_UPSERT;
+    property OnResponseCHATS_UPDATE     : TResponseCHATS_UPDATEEvent      read FOnResponseCHATS_UPDATE      write FOnResponseCHATS_UPDATE;
+    property OnResponseCHATS_DELETE     : TResponseCHATS_DELETEEvent      read FOnResponseCHATS_DELETE      write FOnResponseCHATS_DELETE;
+
+    property OnResponseGROUPS_SET       : TResponseGROUPS_SETEvent        read FOnResponseGROUPS_SET        write FOnResponseGROUPS_SET;
+    property OnResponseGROUPS_UPSERT    : TResponseGROUPS_UPSERTEvent     read FOnResponseGROUPS_UPSERT     write FOnResponseGROUPS_UPSERT;
+    property OnResponseGROUP_UPDATE     : TResponseGROUP_UPDATEEvent      read FOnResponseGROUP_UPDATE      write FOnResponseGROUP_UPDATE;
+    property OnResponseGROUP_PARTICIPANTS_UPDATE  : TResponseGROUP_PARTICIPANTS_UPDATEEvent   read FOnResponseGROUP_PARTICIPANTS_UPDATE   write FOnResponseGROUP_PARTICIPANTS_UPDATE;
+
+  {
+  TResponseSEND_MESSAGEEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseMESSAGES_SETEvent = Procedure(Sender : TObject; Response: string) of object;
+
+  TResponseCONTACTS_SETEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseCONTACTS_UPSERTEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseCONTACTS_UPDATEEvent = Procedure(Sender : TObject; Response: string) of object;
+
+  TResponsePRESENCE_UPDATEEvent = Procedure(Sender : TObject; Response: string) of object;
+
+  TResponseCHATS_SETEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseCHATS_UPSERTEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseCHATS_UPDATEEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseCHATS_DELETEEvent = Procedure(Sender : TObject; Response: string) of object;
+
+  TResponseGROUPS_UPSERTEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseGROUP_UPDATEEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseGROUP_PARTICIPANTS_UPDATEEvent = Procedure(Sender : TObject; Response: string) of object;
+    }
 
     property Emoticons                : TEvolutionAPIEmoticons       read FEmoticons                 write FEmoticons;
 
@@ -937,7 +1010,7 @@ begin
       waid := DDIDefault.ToString + waid;
 
     if Trim(fromMe) = '' then
-      fromMe := 'true';
+      fromMe := 'false';
 
     json :=
       '{ ' +
@@ -2082,6 +2155,69 @@ begin
 
 end;
 
+function TEvolutionAPI.SetSettings(reject_call, msg_call, groups_ignore, always_online, read_messages, read_status: string): string;
+var
+  response: string;
+  json: string;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+    if Trim(msg_call) = '' then
+      msg_call := 'I do not accept calls';
+
+    json :=
+        '{ ' +
+        '  "reject_call": ' + reject_call + ', ' +
+        '    "msg_call": "' + msg_call + '", ' +
+        '    "groups_ignore": ' + groups_ignore + ', ' +
+        '    "always_online": ' + always_online + ', ' +
+        '    "read_messages": ' + read_messages + ', ' +
+        '    "read_status": ' + read_status + ' ' +
+        '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/settings/set/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('apikey', token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
+end;
+
 function TEvolutionAPI.SetWebhook(url, events: string; webhook_by_events, webhook_base64: Boolean): string;
 var
   response: string;
@@ -2212,10 +2348,208 @@ begin
         Res.Send(Response);
 
         Response := Req.Body;
-        if Assigned(FOnResponseQrcodeUpdate) then
-          FOnResponseQrcodeUpdate(Self, Response);
+        if Assigned(FOnResponseCallUpdate) then
+          FOnResponseCallUpdate(Self, Response);
       end
     );
+
+  THorse
+    .Post('/responsewebhook/send-message',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response call webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseSEND_MESSAGE) then
+          FOnResponseSEND_MESSAGE(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/message-set',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response message-set webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseMESSAGES_SET) then
+          FOnResponseMESSAGES_SET(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/contacts-set',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response contacts-set webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseCONTACTS_SET) then
+          FOnResponseCONTACTS_SET(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/contacts-upsert',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response contacts-upsert webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseCONTACTS_UPSERT) then
+          FOnResponseCONTACTS_UPSERT(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/contacts-update',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response contacts-update webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseCONTACTS_UPDATE) then
+          FOnResponseCONTACTS_UPDATE(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/chats-set',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response chats-set webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseCHATS_SET) then
+          FOnResponseCHATS_SET(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/chats-upsert',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response chats-upsert webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseCHATS_UPSERT) then
+          FOnResponseCHATS_UPSERT(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/chats-delete',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response chats-delete webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseCHATS_DELETE) then
+          FOnResponseCHATS_DELETE(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/chats-update',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response chats-update webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseCHATS_UPDATE) then
+          FOnResponseCHATS_UPDATE(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/group-update',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response group-update webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseGROUP_UPDATE) then
+          FOnResponseGROUP_UPDATE(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/groups-updsert',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response groups-updsert webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseGROUPS_UPSERT) then
+          FOnResponseGROUPS_UPSERT(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/group-participants-update',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response group-participants-update webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseGROUP_PARTICIPANTS_UPDATE) then
+          FOnResponseGROUP_PARTICIPANTS_UPDATE(Self, Response);
+      end
+    );
+
+{
+    FOnResponseSEND_MESSAGE: TResponseSEND_MESSAGEEvent;
+    FOnResponseMESSAGES_SET: TResponseMESSAGES_SETEvent;
+    FOnResponseCONTACTS_SET: TResponseCONTACTS_SETEvent;
+    FOnResponseCONTACTS_UPSERT: TResponseCONTACTS_UPSERTEvent;
+    FOnResponseCONTACTS_UPDATE: TResponseCONTACTS_UPDATEEvent;
+    FOnResponseCHATS_SET: TResponseCHATS_SETEvent;
+
+    FOnResponsePRESENCE_UPDATE: TResponsePRESENCE_UPDATEEvent;
+    FOnResponseCHATS_UPSERT: TResponseCHATS_UPSERTEvent;
+    FOnResponseCHATS_UPDATE: TResponseCHATS_UPDATEEvent;
+    FOnResponseCHATS_DELETE: TResponseCHATS_DELETEEvent;
+    FOnResponseGROUPS_UPSERT: TResponseGROUPS_UPSERTEvent;
+    FOnResponseGROUP_PARTICIPANTS_UPDATE: TResponseGROUP_PARTICIPANTS_UPDATEEvent;
+    FOnResponseGROUP_UPDATE: TResponseGROUP_UPDATEEvent;
+    FOnResponseGROUPS_SET: TResponseGROUPS_SETEvent;
+}
 
 
   if PortWebhook = 0 then

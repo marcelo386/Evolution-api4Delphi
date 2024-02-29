@@ -124,6 +124,23 @@ type
     procedure BitBtn3Click(Sender: TObject);
     procedure EvolutionAPI1ResponseMessageUpdate(Sender: TObject; Response: string);
     procedure Button2Click(Sender: TObject);
+    procedure EvolutionAPI1ResponseCallUpdate(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseCHATS_DELETE(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseCHATS_SET(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseCHATS_UPDATE(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseCHATS_UPSERT(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseConnectionUpdate(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseCONTACTS_SET(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseCONTACTS_UPDATE(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseCONTACTS_UPSERT(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseGROUPS_SET(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseGROUPS_UPSERT(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseGROUP_PARTICIPANTS_UPDATE(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseGROUP_UPDATE(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseMESSAGES_SET(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponsePRESENCE_UPDATE(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseQrcodeUpdate(Sender: TObject; Response: string);
+    procedure EvolutionAPI1ResponseSEND_MESSAGE(Sender: TObject; Response: string);
 
   private
     procedure CarregarImagemBase64(const Base64Str: string; const Image: TImage);
@@ -249,7 +266,7 @@ begin
     Exit;
   end;
 
-  //SendReaction(waid, message_id, emoji: string)
+
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.MarkIsRead(ed_num.Text, edtMessage_id.Text, cFromMe.Text);
@@ -848,6 +865,8 @@ begin
   edtPortWebhook.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'PORT_Webhook', '8020');
   edtDDI_Default.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'DDI_Default', '55');
   edtNumberWhatsApp.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'NumberWhatsApp', '');
+  edtURLWebhook.Text :=  ArquivoConfig.ReadString('CONFIGURACAO', 'URLWebhook', 'http://localhost:3000/webhook');
+  edtEventsSubscribe.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'EventsSubscribe', '"QRCODE_UPDATED", "MESSAGES_UPSERT", "MESSAGES_UPDATE", "SEND_MESSAGE", "CONNECTION_UPDATE"');
 
   ArquivoConfig.UpdateFile;
 
@@ -875,6 +894,8 @@ begin
   ArquivoConfig.writeString('CONFIGURACAO', 'PORT_Webhook', edtPortWebhook.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'DDI_Default', edtDDI_Default.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'NumberWhatsApp', edtNumberWhatsApp.Text);
+  ArquivoConfig.writeString('CONFIGURACAO', 'URLWebhook', edtURLWebhook.Text);
+  ArquivoConfig.writeString('CONFIGURACAO', 'EventsSubscribe', edtEventsSubscribe.Text);
 
   ArquivoConfig.UpdateFile;
 
@@ -1066,7 +1087,6 @@ begin
         end;
       end;
 
-
       if Assigned(Result.data.message.messageContextInfo) then
       begin
         //memResponse.Lines.Add('fromMe: ' + BooleanToStr(Result.data.key.fromMe));
@@ -1162,10 +1182,95 @@ begin
 
 end;
 
+procedure TfrmPrincipal.EvolutionAPI1ResponseCallUpdate(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('CALL_UPDATE');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseCHATS_DELETE(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('CHATS_DELETE');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseCHATS_SET(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('CHATS_SET');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseCHATS_UPDATE(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('CHATS_UPDATE');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseCHATS_UPSERT(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('CHATS_UPSERT');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseConnectionUpdate(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('CONNECTION_UPDATE');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseCONTACTS_SET(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('CONTACTS_SET');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseCONTACTS_UPDATE(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('CONTACTS_UPDATE');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseCONTACTS_UPSERT(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('CONTACTS_UPSERT');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseGROUPS_SET(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('GROUPS_SET');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseGROUPS_UPSERT(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('GROUPS_UPSERT');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseGROUP_PARTICIPANTS_UPDATE(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('GROUP_PARTICIPANTS_UPDATE');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseGROUP_UPDATE(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('GROUP_UPDATE');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseMESSAGES_SET(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('MESSAGES_SET');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
 procedure TfrmPrincipal.EvolutionAPI1ResponseMessageUpdate(Sender: TObject; Response: string);
 var
   Result: uEventsMessageUpdateClasses.TResultEventMessageUpdateClass;
 begin
+  memResponse.Lines.Add('MESSAGES_UPDATE');
 
   memResponse.Lines.Add('' + Response + #13#10);
 
@@ -1198,8 +1303,27 @@ begin
 
 end;
 
+procedure TfrmPrincipal.EvolutionAPI1ResponsePRESENCE_UPDATE(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('PRESENCE_UPDATE');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseQrcodeUpdate(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('QRCODE_UPDATE');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
+procedure TfrmPrincipal.EvolutionAPI1ResponseSEND_MESSAGE(Sender: TObject; Response: string);
+begin
+  memResponse.Lines.Add('SEND_MESSAGE webhook');
+  memResponse.Lines.Add('' + Response + #13#10);
+end;
+
 procedure TfrmPrincipal.EvolutionAPI1RetSendMessage(Sender: TObject; Response: string);
 begin
+  memResponse.Lines.Add('SEND_MESSAGE');
   memResponse.Lines.Add(Response);
 end;
 
