@@ -919,6 +919,7 @@ var
   anexoCriptografado, anexo, extensao, remoteJid, sType, anexo_renomeado, caption: string;
 begin
 
+  memResponse.Lines.Add('MESSAGES_UPSERT');
   memResponse.Lines.Add('' + Response + #13#10);
 
   try
