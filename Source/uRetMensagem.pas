@@ -23,6 +23,17 @@ uses
   System.SysUtils, System.Classes, System.JSON, Generics.Collections, Rest.Json;
 
 type
+  TfetchProfilePictureUrlClass = Class
+  private
+    Fwuid: string;
+    FprofilePictureUrl: string;
+  public
+    property profilePictureUrl: string read FprofilePictureUrl write FprofilePictureUrl;
+    property wuid: string read Fwuid write Fwuid;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TfetchProfilePictureUrlClass;
+  end;
+
   TContact = class
   private
     FInput: string;
@@ -476,6 +487,18 @@ begin
 end;
 
 function TExtendedTextMessageClass.ToJsonString: string;
+begin
+  result := TJson.ObjectToJsonString(self);
+end;
+
+{ TfetchProfilePictureUrlClass }
+
+class function TfetchProfilePictureUrlClass.FromJsonString(AJsonString: string): TfetchProfilePictureUrlClass;
+begin
+  result := TJson.JsonToObject<TfetchProfilePictureUrlClass>(AJsonString);
+end;
+
+function TfetchProfilePictureUrlClass.ToJsonString: string;
 begin
   result := TJson.ObjectToJsonString(self);
 end;

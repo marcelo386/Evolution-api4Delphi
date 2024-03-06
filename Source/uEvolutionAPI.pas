@@ -21,7 +21,7 @@ interface
 uses
   System.SysUtils, System.Classes, System.JSON, System.Net.HttpClient, System.Net.URLClient, IdSSLOpenSSL, IdHTTP,
   uRetMensagem, StrUtils, Horse, Horse.Commons,  Horse.Core, web.WebBroker,
-  RESTRequest4D, REST.Types, REST.Client, System.Net.Mime, uEvolutionAPI.Emoticons;
+  RESTRequest4D, REST.Types, REST.Client, System.Net.Mime, uEvolutionAPI.Emoticons, System.MaskUtils;
 
 
 type
@@ -88,7 +88,11 @@ type
     FOnResponseGROUP_PARTICIPANTS_UPDATE: TResponseGROUP_PARTICIPANTS_UPDATEEvent;
     FOnResponseGROUP_UPDATE: TResponseGROUP_UPDATEEvent;
     FOnResponseGROUPS_SET: TResponseGROUPS_SETEvent;
-    function CaractersWeb(vText: string): string;
+    FLengthDDD: Integer;
+
+    FLengthPhone: Integer;
+    FAllowOneDigit: Boolean;
+    FLengthDDI: integer;  function CaractersWeb(vText: string): string;
 
   protected
 
@@ -115,6 +119,7 @@ type
     function MarkIsRead(waid, message_id, fromMe: string): string;
     function DeleteMessage(waid, message_id, fromMe, paticipant: string): string;
     function CheckNumberExists(numbers: string): string;
+    function fetchProfilePictureUrl(waid: string): string;
     function connectionState(instanceName: string): string;
     function logout(instanceName: string): string;
     function DeleteInstance(instanceName: string): string;
@@ -139,6 +144,8 @@ type
     function GetTypeFileFromContentType(const AContentType: string): string;
     function GetTypeFileFromExtension(const AFileExtension: string): string;
 
+    Function  FormatOut(PNum:String): String;
+
     procedure StartServer;
     procedure StopServer;
 
@@ -153,6 +160,11 @@ type
     property Port              : Integer                 read FPort               write FPort               Default 8080;
     property PortWebhook       : Integer                 read FPortWebhook        write FPortWebhook        Default 8020;
     property DDIDefault        : Integer                 read FDDIDefault         write FDDIDefault         Default 55;
+
+    property LengthDDI         : integer                 read FLengthDDI          write FLengthDDI Default 2;
+    property LengthDDD         : Integer                 read FLengthDDD          write FLengthDDD Default 2;
+    property LengthPhone       : Integer                 read FLengthPhone        write FLengthPhone Default 9;
+    property AllowOneDigitMore : Boolean                 read FAllowOneDigit      write FAllowOneDigit default True;
 
     property OnRetSendMessage           : TOnRetSendMessage               read FOnRetSendMessage            write FOnRetSendMessage;
     property OnResponse                 : TResponseEvent                  read FOnResponse                  write FOnResponse;
@@ -244,7 +256,6 @@ begin
   Result := '';
 
   try
-
     json :=
       '{ ' +
       '   "numbers": [' + numbers + '] ' +
@@ -253,8 +264,7 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/whatsappNumbers/' + instanceName)
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/chat/whatsappNumbers/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -585,7 +595,7 @@ var
   response: string;
   json: string;
   //MessagePayload: uRetMensagemApiOficial.TMessagePayload;
-  UrlMediaFile: TUrlMedia;
+  //UrlMediaFile: TUrlMedia;
   UTF8Texto: UTF8String;
 begin
   Result := '';
@@ -633,8 +643,8 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response + #13#10);
 
-      UrlMediaFile := TUrlMedia.FromJsonString(response);
-      Result := UrlMediaFile.url;
+      //UrlMediaFile := TUrlMedia.FromJsonString(response);
+      //Result := UrlMediaFile.url;
     except
       on E: Exception do
       begin
@@ -651,7 +661,7 @@ end;
 function TEvolutionAPI.DownloadMediaURL(url, MimeType, FileName: string): string;
 var
   response: string;
-  UrlMediaFile: TUrlMedia;
+  //UrlMediaFile: TUrlMedia;
   Stream: TStream;
   FileStream: TFileStream;
   Buffer: array[0..8191] of Byte; // Buffer para ler/gravar dados
@@ -770,6 +780,68 @@ begin
 
   end;
 
+end;
+
+function TEvolutionAPI.fetchProfilePictureUrl(waid: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetfetchProfilePictureUrl: uRetMensagem.TfetchProfilePictureUrlClass;
+begin
+  Result := '';
+
+  try
+    if (length(waid) = 11) or (length(waid) = 10) then
+      waid := DDIDefault.ToString + waid;
+
+    json :=
+      '{ ' +
+      '    "number": "' + waid + '" ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+    try
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/chat/fetchProfilePictureUrl/' + instanceName + '')
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        //MemoLogApiOficial.Lines.Add(json + SLINEBREAK);
+        if Assigned(FOnRetSendMessage) then
+          FOnRetSendMessage(Self, 'Error: ' + e.Message);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      RetfetchProfilePictureUrl := TfetchProfilePictureUrlClass.FromJsonString(response);
+      Result := RetfetchProfilePictureUrl.profilePictureUrl;
+      //Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+  finally
+  end;
+
 end;
 
 function TEvolutionAPI.findChats: string;
@@ -937,6 +1009,21 @@ begin
 
   end;
 
+end;
+
+function TEvolutionAPI.FormatOut(PNum: String): String;
+var
+  LDDi, LDDD, Lresto, LMask : String;
+
+begin
+ LDDi   := Copy(PNum, 0, FLengthDDI);
+ LDDD   := Copy(PNum, FLengthDDI + 1, FLengthDDD);
+ Lresto := Copy(PNum, FLengthDDI + FLengthDDD + 1); // + 1, LengthPhone);
+ if Length(Lresto) <= 8 then
+    LMask := '0000\-0000;0;' else
+    LMask := '0\.0000\-0000;0;';
+
+ Result :=  '+' + LDDi + ' (' + LDDD + ') ' + FormatMaskText(LMask, Lresto );
 end;
 
 function TEvolutionAPI.getBase64FromMediaMessage(id, convertToMp4: string): string;
