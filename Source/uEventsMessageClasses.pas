@@ -385,10 +385,15 @@ type
     FDegreesLatitude: Extended;
     FDegreesLongitude: Extended;
     FJpegThumbnail: String;
+    Fname: String;
+    Faddress: String;
   public
     property degreesLatitude: Extended read FDegreesLatitude write FDegreesLatitude;
     property degreesLongitude: Extended read FDegreesLongitude write FDegreesLongitude;
     property jpegThumbnail: String read FJpegThumbnail write FJpegThumbnail;
+    property address: String read Faddress write Faddress;
+    property name: String read Fname write Fname;
+
     //function ToJsonString: string;
     //class function FromJsonString(AJsonString: string): TLocationMessageClass;
   end;
