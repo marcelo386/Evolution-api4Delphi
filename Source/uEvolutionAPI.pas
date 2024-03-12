@@ -1347,16 +1347,16 @@ begin
 
     json :=
       '{ ' +
-      '    "number": ""' + waid + '", ' +
+      '    "number": "' + waid + '", ' +
       '    "options": { ' +
       '        "delay": 1200, ' +
       '        "presence": "composing" ' +
       '    }, ' +
       '    "mediaMessage": { ' +
-      '        "mediatype": "' + typeFile + '", ' +
+      '        "mediatype": "' + typeFile + '" ' +
       IfThen( Trim(fileName) <> '' ,'        ,"fileName": "' + filename + '"  ', '') +
       IfThen( Trim(body) <> '' ,'        ,"caption": "' + body + '"  ', '') +
-      '        "media": "' + url + '" ' +
+      '        ,"media": "' + url + '" ' +
       '    } ' +
       '} ';
 
