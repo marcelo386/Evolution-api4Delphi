@@ -29,6 +29,8 @@ type
   TOnRetSendMessage = Procedure(Sender : TObject; Response: string) of object;
   TResponseEvent = Procedure(Sender : TObject; Response: string) of object;
   TResponseMessageUpdateEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseMessageDeleteEvent = Procedure(Sender : TObject; Response: string) of object;
+
   TResponseQrcodeUpdateEvent = Procedure(Sender : TObject; Response: string) of object;
   TResponseConnectionUpdateEvent = Procedure(Sender : TObject; Response: string) of object;
   TResponseCallEvent = Procedure(Sender : TObject; Response: string) of object;
@@ -59,6 +61,7 @@ type
     FOnRetSendMessage: TOnRetSendMessage;
     FOnResponse: TResponseEvent;
     FOnResponseMessageUpdate: TResponseMessageUpdateEvent;
+    FOnResponseMessageDelete: TResponseMessageDeleteEvent;
     FOnResponseQrcodeUpdate: TResponseQrcodeUpdateEvent;
 
     FPort: Integer;
@@ -92,7 +95,9 @@ type
 
     FLengthPhone: Integer;
     FAllowOneDigit: Boolean;
-    FLengthDDI: integer;  function CaractersWeb(vText: string): string;
+    FLengthDDI: integer;
+
+    function CaractersWeb(vText: string): string;
 
   protected
 
@@ -169,6 +174,9 @@ type
     property OnRetSendMessage           : TOnRetSendMessage               read FOnRetSendMessage            write FOnRetSendMessage;
     property OnResponse                 : TResponseEvent                  read FOnResponse                  write FOnResponse;
     property OnResponseMessageUpdate    : TResponseMessageUpdateEvent     read FOnResponseMessageUpdate     write FOnResponseMessageUpdate;
+    property OnResponseMessageDelete    : TResponseMessageDeleteEvent     read FOnResponseMessageDelete     write FOnResponseMessageDelete;
+
+
     property OnResponseQrcodeUpdate     : TResponseQrcodeUpdateEvent      read FOnResponseQrcodeUpdate      write FOnResponseQrcodeUpdate;
     property OnResponseConnectionUpdate : TResponseConnectionUpdateEvent  read FOnResponseConnectionUpdate  write FOnResponseConnectionUpdate;
     property OnResponseCallUpdate       : TResponseCallEvent              read FOnResponseCallUpdate        write FOnResponseCallUpdate;
@@ -2392,6 +2400,21 @@ begin
         Response := Req.Body;
         if Assigned(FOnResponseMessageUpdate) then
           FOnResponseMessageUpdate(Self, Response);
+      end
+    );
+
+  THorse
+    .Post('/responsewebhook/message-delete',
+      procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+      var
+        Response: string;
+      begin
+        Response := 'save response message-delete webhook ok';
+        Res.Send(Response);
+
+        Response := Req.Body;
+        if Assigned(FOnResponseMessageDelete) then
+          FOnResponseMessageDelete(Self, Response);
       end
     );
 
