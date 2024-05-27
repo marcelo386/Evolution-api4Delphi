@@ -20,8 +20,8 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, System.ImageList, Vcl.ImgList, uWPPCloudAPI,
-  uWhatsAppBusinessClasses, IniFiles, System.IOUtils, Vcl.Buttons, Vcl.Imaging.pngimage, System.NetEncoding, DateUtils,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, System.ImageList, Vcl.ImgList,
+  IniFiles, System.IOUtils, Vcl.Buttons, Vcl.Imaging.pngimage, System.NetEncoding, DateUtils,
   uEvolutionAPI, uEventsMessageClasses, uEventsMessageUpdateClasses, IdBaseComponent, IdComponent,
   IdTCPConnection, IdTCPClient, IdHTTP, System.StrUtils;
 
@@ -333,7 +333,7 @@ begin
         // "TYPEBOT_CHANGE_STATUS"]
       *)
 
-  EvolutionAPI1.urlServer := 'http://localhost';
+  EvolutionAPI1.urlServer := edtURLWebhook.Text; //'http://localhost';
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SetWebhook(edtURLWebhook.Text, edtEventsSubscribe.Text, True, False);

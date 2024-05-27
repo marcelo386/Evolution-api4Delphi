@@ -540,6 +540,10 @@ object frmPrincipal: TfrmPrincipal
       object tsBase64: TTabSheet
         Caption = 'Base64'
         ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Memo1: TMemo
           Left = 0
           Top = 0
@@ -1986,6 +1990,10 @@ object frmPrincipal: TfrmPrincipal
     Port = 8010
     PortWebhook = 0
     DDIDefault = 0
+    LengthDDI = 0
+    LengthDDD = 0
+    LengthPhone = 0
+    AllowOneDigitMore = False
     OnRetSendMessage = EvolutionAPI1RetSendMessage
     OnResponse = EvolutionAPI1Response
     OnResponseMessageUpdate = EvolutionAPI1ResponseMessageUpdate
