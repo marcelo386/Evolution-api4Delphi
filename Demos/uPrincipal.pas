@@ -23,7 +23,9 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, System.ImageList, Vcl.ImgList,
   IniFiles, System.IOUtils, Vcl.Buttons, Vcl.Imaging.pngimage, System.NetEncoding, DateUtils,
   uEvolutionAPI, uEventsMessageClasses, uEventsMessageUpdateClasses, IdBaseComponent, IdComponent,
-  IdTCPConnection, IdTCPClient, IdHTTP, System.StrUtils;
+  IdTCPConnection, IdTCPClient, IdHTTP, System.StrUtils, FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
+  FireDAC.Phys.Intf, FireDAC.DApt.Intf, Data.DB, FireDAC.Comp.DataSet, FireDAC.Comp.Client, Vcl.Grids, Vcl.DBGrids,
+  System.JSON, REST.Types, REST.Response.Adapter;
 
 type
   TfrmPrincipal = class(TForm)
@@ -57,8 +59,6 @@ type
     btnLocalizacao: TButton;
     btnArquivo: TButton;
     Button2: TButton;
-    Label3: TLabel;
-    memResponse: TMemo;
     edtHeader: TLabeledEdit;
     edtFooter: TLabeledEdit;
     edtButtonText: TLabeledEdit;
@@ -99,6 +99,28 @@ type
     Label14: TLabel;
     ProgressBar1: TProgressBar;
     IdHTTP1: TIdHTTP;
+    BitBtn4: TBitBtn;
+    bFetchInstances: TBitBtn;
+    BitBtn6: TBitBtn;
+    BitBtn7: TBitBtn;
+    BitBtn8: TBitBtn;
+    BitBtn9: TBitBtn;
+    whatsOff: TImage;
+    whatsOn: TImage;
+    lblNumeroConectado: TLabel;
+    FDMemTable1: TFDMemTable;
+    DataSource1: TDataSource;
+    PageControl2: TPageControl;
+    TabSheet1: TTabSheet;
+    Label8: TLabel;
+    memResponse: TMemo;
+    TabSheet2: TTabSheet;
+    DBGrid1: TDBGrid;
+    StatusBar1: TStatusBar;
+    edtTokenAPIGeral: TEdit;
+    Label15: TLabel;
+    TimerInicio: TTimer;
+    Button1: TButton;
     procedure btnTextoSimplesClick(Sender: TObject);
     procedure btnBotaoSimplesClick(Sender: TObject);
     procedure btnListaMenuClick(Sender: TObject);
@@ -141,11 +163,21 @@ type
     procedure EvolutionAPI1ResponsePRESENCE_UPDATE(Sender: TObject; Response: string);
     procedure EvolutionAPI1ResponseQrcodeUpdate(Sender: TObject; Response: string);
     procedure EvolutionAPI1ResponseSEND_MESSAGE(Sender: TObject; Response: string);
+    procedure BitBtn4Click(Sender: TObject);
+    procedure bFetchInstancesClick(Sender: TObject);
+    procedure BitBtn6Click(Sender: TObject);
+    procedure BitBtn7Click(Sender: TObject);
+    procedure BitBtn8Click(Sender: TObject);
+    procedure BitBtn9Click(Sender: TObject);
+    procedure TimerInicioTimer(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
 
   private
     procedure CarregarImagemBase64(const Base64Str: string; const Image: TImage);
     procedure ProcessQRCodeImage;
     procedure gravar_log(linha: string);
+    procedure JsonToDataset(aDataset: TDataSet; aJSON, RootElement: string);
+    procedure AutoSizeDBGrid(const xDBGrid: TDBGrid);
     function GerarGUID: string;
     function BooleanToStr(Operador: Boolean): String;
     function Descriptografar(mediakey, CaminhoArqOriginal,
@@ -165,7 +197,7 @@ implementation
 
 {$R *.dfm}
 
-uses uRetMensagem;
+uses uRetMensagem, uFetchInstancesClass, uConnectionUpdateClass, uQrcodeUpdateClass;
 
 const
   AutoFileType = 7; // Default define automaticamente o tipo de arquivo
@@ -201,6 +233,53 @@ begin
     frmPrincipal.ProgressBar1.Position := Progress;
   except
     on E: Exception do
+  end;
+end;
+
+procedure TfrmPrincipal.AutoSizeDBGrid(const xDBGrid: TDBGrid);
+var
+  I, TotalWidht, VarWidth, QtdTotalColuna : Integer;
+  xColumn : TColumn;
+begin
+  // Largura total de todas as colunas antes de redimensionar
+  TotalWidht := 0;
+  // Como dividir todo o espaço extra na grade
+  VarWidth := 0;
+  // Quantas colunas devem ser auto-redimensionamento
+  QtdTotalColuna := 0;
+
+  for I := 0 to -1 + xDBGrid.Columns.Count do
+  begin
+    TotalWidht := TotalWidht + xDBGrid.Columns[I].Width;
+    if xDBGrid.Columns[I].Field.Tag <> 0 then
+      Inc(QtdTotalColuna);
+  end;
+
+  // Adiciona 1px para a linha de separador de coluna
+  if dgColLines in xDBGrid.Options then
+    TotalWidht := TotalWidht + xDBGrid.Columns.Count;
+
+  // Adiciona a largura da coluna indicadora
+  if dgIndicator in xDBGrid.Options then
+    TotalWidht := TotalWidht + IndicatorWidth;
+
+  // width vale "Left"
+  VarWidth :=  xDBGrid.ClientWidth - TotalWidht;
+
+
+  // Da mesma forma distribuir VarWidth para todas as colunas auto-resizable
+  if QtdTotalColuna > 0 then
+    VarWidth := varWidth div QtdTotalColuna;
+
+  for I := 0 to -1 + xDBGrid.Columns.Count do
+  begin
+    xColumn := xDBGrid.Columns[I];
+    if xColumn.Field.Tag <> 0 then
+    begin
+      xColumn.Width := xColumn.Width + VarWidth;
+      if xColumn.Width < xColumn.Field.Tag then
+        xColumn.Width := xColumn.Field.Tag;
+    end;
   end;
 end;
 
@@ -290,6 +369,384 @@ begin
   end;
 end;
 
+procedure TfrmPrincipal.BitBtn4Click(Sender: TObject);
+var
+  I : Integer;
+begin
+  if Trim(edtUrlServerEvolutionAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE URL SERVER API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtTokenAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE TOKEN API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtInstanceName.Text) = '' then
+  begin
+    ShowMessage('INFORM THE "INSTANCE NAME " ');
+    edtInstanceName.SetFocus;
+    Exit;
+  end;
+
+
+  //EvolutionAPI1.urlServer := 'http://localhost';
+  //EvolutionAPI1.Token := 'B6D711FCDE4D4FD5936544120E713976'; //edtTokenAPI.Text;
+  EvolutionAPI1.urlServer := edtUrlServerEvolutionAPI.Text;
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
+  sResponse := EvolutionAPI1.InstanceConnect(edtInstanceName.Text);
+
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+
+  memResponse.Lines.Add(sResponse);
+
+  try
+    //sResponse := Trim(Copy(sResponse,1,length(sResponse)-1));
+    //{"instance":
+    //sResponse := '[' + Copy(sResponse,13,length(sResponse)) + ']';
+
+    sResponse := '[' + sResponse + ']';
+
+    JsonToDataset(FDMemTable1, sResponse, 'instance');
+
+    For I := 0 to FDMemTable1.FieldCount - 1 do
+      FDMemTable1.Fields[i].Tag := 120;
+    AutoSizeDBGrid(DBGrid1);
+
+  except on E: Exception do
+  end;
+end;
+
+procedure TfrmPrincipal.bFetchInstancesClick(Sender: TObject);
+var
+  I : Integer;
+  Result: uFetchInstancesClass.TRootClass;
+begin
+  if Trim(edtUrlServerEvolutionAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE URL SERVER API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtTokenAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE TOKEN API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtInstanceName.Text) = '' then
+  begin
+    ShowMessage('INFORM THE "INSTANCE NAME " ');
+    edtInstanceName.SetFocus;
+    Exit;
+  end;
+
+
+  //EvolutionAPI1.urlServer := 'http://localhost';
+  //EvolutionAPI1.Token := 'B6D711FCDE4D4FD5936544120E713976'; //edtTokenAPI.Text;
+  EvolutionAPI1.urlServer := edtUrlServerEvolutionAPI.Text;
+  EvolutionAPI1.Token := edtTokenAPIGeral.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
+  sResponse := EvolutionAPI1.fetchInstances;
+
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+
+  memResponse.Lines.Add(sResponse + #13#10);
+  gravar_log(sResponse + #13#10);
+
+
+  try
+    //sResponse := Copy(sResponse,2,length(sResponse));
+    //sResponse := Copy(sResponse,1,length(sResponse)-1);
+    sResponse := '{"FetchInstances":' +  sResponse + '}';
+    memResponse.Lines.Add(sResponse + #13#10);
+
+    Result := uFetchInstancesClass.TRootClass.FromJsonString(sResponse);
+
+    //Result := uFetchInstancesClass.TResultClass.FromJsonString('{"FetchInstances":' +  sResponse + '}');
+
+    sResponse := Result.ToJsonString;
+    sResponse := StringReplace(sResponse, '{"fetchinstances":', '', [rfReplaceAll, rfIgnoreCase]);
+    sResponse := Copy(sResponse,1, length(sResponse)-1);
+    sResponse := Trim(sResponse);
+    gravar_log(sResponse);
+
+    memResponse.Lines.Add(sResponse);
+
+    JsonToDataset(FDMemTable1, sResponse, 'Instance');
+
+
+    For I := 0 to FDMemTable1.FieldCount - 1 do
+      FDMemTable1.Fields[i].Tag := 120;
+    AutoSizeDBGrid(DBGrid1);
+
+  except on E: Exception do
+  end;
+
+  lblNumeroConectado.Caption := '';
+
+  if FDMemTable1.Active then
+    if FDMemTable1.RecordCount > 0 then
+    begin
+      if FDMemTable1.Locate('instance.instanceName', edtInstanceName.Text, []) then
+      begin
+        try
+          lblNumeroConectado.Caption := FDMemTable1.FieldByName('instance.owner').AsString;
+          lblNumeroConectado.Caption := Copy(lblNumeroConectado.Caption,1, pos('@', lblNumeroConectado.Caption) -1);
+          gravar_log('Número Conectado: ' + lblNumeroConectado.Caption);
+        except on E: Exception do
+          lblNumeroConectado.Caption := '';
+        end;
+
+        StatusBar1.Panels[0].Text := lblNumeroConectado.Caption;
+
+        try
+          StatusBar1.Panels[4].Text := FDMemTable1.FieldByName('instance.profileName').AsString;
+        except on E: Exception do
+        end;
+
+
+        try
+          if (FDMemTable1.FieldByName('instance.owner').AsString <> '') and (FDMemTable1.FieldByName('instance.status').AsString = 'open')  then //status
+          begin
+            whatsOn.Visible := True;
+            whatsOff.Visible := False;
+            StatusBar1.Panels[1].Text := 'Online';
+          end
+          else
+          begin
+            whatsOn.Visible := False;
+            whatsOff.Visible := True;
+            StatusBar1.Panels[1].Text := 'Offline';
+          end;
+        except
+          on E: Exception do
+          begin
+            whatsOn.Visible := False;
+            whatsOff.Visible := True;
+            StatusBar1.Panels[1].Text := 'Offline';
+          end;
+        end;
+
+
+      end;
+    end;
+
+end;
+
+procedure TfrmPrincipal.BitBtn6Click(Sender: TObject);
+var
+  I : Integer;
+begin
+  if Trim(edtUrlServerEvolutionAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE URL SERVER API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtTokenAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE TOKEN API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtInstanceName.Text) = '' then
+  begin
+    ShowMessage('INFORM THE "INSTANCE NAME " ');
+    edtInstanceName.SetFocus;
+    Exit;
+  end;
+
+
+  //EvolutionAPI1.urlServer := 'http://localhost';
+  //EvolutionAPI1.Token := 'B6D711FCDE4D4FD5936544120E713976'; //edtTokenAPI.Text;
+  EvolutionAPI1.urlServer := edtUrlServerEvolutionAPI.Text;
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
+  sResponse := EvolutionAPI1.connectionState(edtInstanceName.Text);
+
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+
+  memResponse.Lines.Add(sResponse);
+
+  try
+    //sResponse := Trim(Copy(sResponse,1,length(sResponse)-1));
+    //{"instance":
+    //sResponse := '[' + Copy(sResponse,13,length(sResponse)) + ']';
+
+    sResponse := '[' + sResponse + ']';
+
+    JsonToDataset(FDMemTable1, sResponse, 'instance');
+
+    For I := 0 to FDMemTable1.FieldCount - 1 do
+      FDMemTable1.Fields[i].Tag := 120;
+    AutoSizeDBGrid(DBGrid1);
+
+  except on E: Exception do
+  end;
+end;
+
+procedure TfrmPrincipal.BitBtn7Click(Sender: TObject);
+var
+  I : Integer;
+begin
+  if Trim(edtUrlServerEvolutionAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE URL SERVER API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtTokenAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE TOKEN API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtInstanceName.Text) = '' then
+  begin
+    ShowMessage('INFORM THE "INSTANCE NAME " ');
+    edtInstanceName.SetFocus;
+    Exit;
+  end;
+
+
+  //EvolutionAPI1.urlServer := 'http://localhost';
+  //EvolutionAPI1.Token := 'B6D711FCDE4D4FD5936544120E713976'; //edtTokenAPI.Text;
+  EvolutionAPI1.urlServer := edtUrlServerEvolutionAPI.Text;
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
+  sResponse := EvolutionAPI1.RestartInstance(edtInstanceName.Text);
+
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+
+  memResponse.Lines.Add(sResponse);
+
+  try
+    JsonToDataset(FDMemTable1, sResponse, '');
+
+    For I := 0 to FDMemTable1.FieldCount - 1 do
+      FDMemTable1.Fields[i].Tag := 120;
+    AutoSizeDBGrid(DBGrid1);
+
+  except on E: Exception do
+  end;
+end;
+
+procedure TfrmPrincipal.BitBtn8Click(Sender: TObject);
+var
+  I : Integer;
+begin
+  if Trim(edtUrlServerEvolutionAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE URL SERVER API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtTokenAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE TOKEN API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtInstanceName.Text) = '' then
+  begin
+    ShowMessage('INFORM THE "INSTANCE NAME " ');
+    edtInstanceName.SetFocus;
+    Exit;
+  end;
+
+
+  //EvolutionAPI1.urlServer := 'http://localhost';
+  //EvolutionAPI1.Token := 'B6D711FCDE4D4FD5936544120E713976'; //edtTokenAPI.Text;
+  EvolutionAPI1.urlServer := edtUrlServerEvolutionAPI.Text;
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
+  sResponse := EvolutionAPI1.logout(edtInstanceName.Text);
+
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+
+  memResponse.Lines.Add(sResponse);
+
+  try
+    JsonToDataset(FDMemTable1, sResponse, '');
+
+    For I := 0 to FDMemTable1.FieldCount - 1 do
+      FDMemTable1.Fields[i].Tag := 120;
+    AutoSizeDBGrid(DBGrid1);
+
+  except on E: Exception do
+  end;
+end;
+
+procedure TfrmPrincipal.BitBtn9Click(Sender: TObject);
+var
+  I : Integer;
+begin
+  if Trim(edtUrlServerEvolutionAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE URL SERVER API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtTokenAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE TOKEN API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtInstanceName.Text) = '' then
+  begin
+    ShowMessage('INFORM THE "INSTANCE NAME " ');
+    edtInstanceName.SetFocus;
+    Exit;
+  end;
+
+
+  //EvolutionAPI1.urlServer := 'http://localhost';
+  //EvolutionAPI1.Token := 'B6D711FCDE4D4FD5936544120E713976'; //edtTokenAPI.Text;
+  EvolutionAPI1.urlServer := edtUrlServerEvolutionAPI.Text;
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
+  sResponse := EvolutionAPI1.DeleteInstance(edtInstanceName.Text);
+
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+
+  memResponse.Lines.Add(sResponse);
+
+  try
+    JsonToDataset(FDMemTable1, sResponse, '');
+
+    For I := 0 to FDMemTable1.FieldCount - 1 do
+      FDMemTable1.Fields[i].Tag := 120;
+    AutoSizeDBGrid(DBGrid1);
+
+  except on E: Exception do
+  end;
+
+end;
+
 procedure TfrmPrincipal.bSetWebhookClick(Sender: TObject);
 begin
   if Trim(edtURLWebhook.Text) = '' then
@@ -333,7 +790,7 @@ begin
         // "TYPEBOT_CHANGE_STATUS"]
       *)
 
-  EvolutionAPI1.urlServer := edtURLWebhook.Text; //'http://localhost';
+  EvolutionAPI1.urlServer := edtUrlServerEvolutionAPI.Text; //'http://localhost';
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SetWebhook(edtURLWebhook.Text, edtEventsSubscribe.Text, True, False);
@@ -770,6 +1227,38 @@ begin
 
 end;
 
+procedure TfrmPrincipal.Button1Click(Sender: TObject);
+begin
+  if Trim(ed_num.Text) = '' then
+  begin
+    ShowMessage('INFORM THE DESTINATION WHATSAPP NUMBER');
+    ed_num.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtMessage_id.Text) = '' then
+  begin
+    ShowMessage('INFORM THE "MESSAGE ID" TO BE EDIT MESSAGE');
+    edtMessage_id.SetFocus;
+    Exit;
+  end;
+
+  if Trim(mem_message.Text) = '' then
+  begin
+    ShowMessage('INFORM THE BODY EDIT MESSAGE TO BE UPDATE');
+    mem_message.SetFocus;
+    Exit;
+  end;
+
+
+  //SendReaction(waid, message_id, emoji: string)
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  sResponse := EvolutionAPI1.editMessage(ed_num.Text, edtMessage_id.Text, cFromMe.Text, ed_num.Text, mem_message.Text);
+
+  memResponse.Lines.Add(sResponse);
+end;
+
 procedure TfrmPrincipal.Button2Click(Sender: TObject);
 begin
   if Trim(ed_num.Text) = '' then
@@ -809,6 +1298,8 @@ begin
   EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
   EvolutionAPI1.PortWebhook := StrToIntDef(edtPortWebhook.Text, 8020);
   EvolutionAPI1.StartServer;
+
+
 end;
 
 function TfrmPrincipal.GerarGUID: string;
@@ -851,6 +1342,38 @@ begin
 
 end;
 
+procedure TfrmPrincipal.JsonToDataset(aDataset: TDataSet; aJSON, RootElement: string);
+var
+  JObj: TJSONArray;
+  vConv : TCustomRESTResponseDataSetAdapter;//TCustomJSONDataSetAdapter;
+  //vConv : TCustomJSONDataSetAdapter;
+begin
+  if (aJSON = EmptyStr) then
+  begin
+    Exit;
+  end;
+
+  JObj := TJSONObject.ParseJSONValue(aJSON) as TJSONArray;
+  //vConv := TCustomJSONDataSetAdapter.Create(Nil);
+  vConv := TCustomRESTResponseDataSetAdapter.Create(Nil);
+
+  try
+    vConv.Dataset := aDataset;
+    if trim(RootElement) <> '' then
+    begin
+      vConv.RootElement := RootElement;
+      vConv.NestedElements := True;
+    end;
+
+    vConv.UpdateDataSet(JObj);
+
+    vConv.RootElement := RootElement;
+  finally
+    vConv.Free;
+    JObj.Free;
+  end;
+end;
+
 procedure TfrmPrincipal.LerConfiguracoes;
 var
   NomeArquivo: string;
@@ -860,6 +1383,7 @@ begin
   ArquivoConfig := TMemIniFile.Create(NomeArquivo);
 
   edtTokenAPI.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'TokenAPI', '');
+  edtTokenAPIGeral.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'TokenAPIGeral', 'B6D711FCDE4D4FD5936544120E713976');
   edtInstanceName.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'InstanceName', '');
   edtPORT_SERVER.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'PORT_SERVER', '8080');
   edtPortWebhook.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'PORT_Webhook', '8020');
@@ -889,6 +1413,7 @@ begin
 
   ArquivoConfig.writeString('CONFIGURACAO', 'UrlServerEvolutionAPI', edtUrlServerEvolutionAPI.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'TokenAPI', edtTokenAPI.Text);
+  ArquivoConfig.writeString('CONFIGURACAO', 'TokenAPIGeral', edtTokenAPIGeral.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'InstanceName', edtInstanceName.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'PORT_SERVER', edtPORT_SERVER.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'PORT_Webhook', edtPortWebhook.Text);
@@ -904,6 +1429,14 @@ begin
   LerConfiguracoes;
 end;
 
+procedure TfrmPrincipal.TimerInicioTimer(Sender: TObject);
+begin
+  TimerInicio.Enabled := False;
+
+  frmPrincipal.bFetchInstancesClick(Self);
+
+end;
+
 function TfrmPrincipal.BooleanToStr(Operador: Boolean): String;
 begin
   if Operador then
@@ -917,6 +1450,17 @@ var
   Result: uEventsMessageClasses.TResultEventClass;
   url, mimetype, mediaKey, filename: string;
   anexoCriptografado, anexo, extensao, remoteJid, sType, anexo_renomeado, caption: string;
+
+var
+  ChatId, IdMensagem, S_Type, Body, S_Caption, fromId, phone_number_id, profile_name,
+    clienturl,  wlo_NomeArquivo,
+    SelectButtonId, SelectRowId, idMensagemOrigem, description,
+    Title, Footer, quotedMsg_body, quotedMsg_caption, S_Type_origem, status, recipient_id : string;
+    sDataEnv, sDataRec, reaction_emoji, reaction_message_id, wlo_ack, wlo_status,
+    error_Message, error_Code, error_title, error_data_details, instanceName, event,
+    sSender, FromMe, latitude, longitude, localidade, base64localidade : string;
+    auxData: Int64;
+  eh_arquivo : Boolean;
 begin
 
   memResponse.Lines.Add('MESSAGES_UPSERT');
@@ -929,19 +1473,31 @@ begin
     memResponse.Lines.Add('event: ' + Result.event);
     memResponse.Lines.Add('sender: ' + Result.sender);
 
+    instanceName := Result.instance;
+    event := Result.event;
+    fromId := Result.sender;
+
     if Assigned(Result.data) then
     begin
       memResponse.Lines.Add('pushName: ' + Result.data.pushName);
+      profile_name := Result.data.pushName;
     end;
 
     if Assigned(Result.data.key) then
     begin
       edtMessage_id.Text := Result.data.key.id;
+      FromMe := BooleanToStr(Result.data.key.fromMe);
+
+      phone_number_id := Result.data.key.remoteJid;
+      IdMensagem := Result.data.key.id;
+
       if Result.data.key.fromMe then
         cFromMe.ItemIndex := 0 else
         cFromMe.ItemIndex := 1;
 
       remoteJid := Result.data.key.remoteJid;
+      ChatId := Result.data.key.remoteJid;
+
       memResponse.Lines.Add('remoteJid: ' + Result.data.key.remoteJid);
       memResponse.Lines.Add('fromMe: ' + BooleanToStr(Result.data.key.fromMe));
       memResponse.Lines.Add('id: ' + Result.data.key.id);
@@ -952,6 +1508,92 @@ begin
       memResponse.Lines.Add('conversation: ' + Result.data.message.conversation);
 
       sType := Result.data.messageType;
+
+      Body := Result.data.message.conversation;
+
+      if Assigned(Result.data.message.extendedTextMessage) then
+      begin
+        if Assigned(Result.data.message.extendedTextMessage.contextInfo) then
+        begin
+          if Result.data.message.extendedTextMessage.contextInfo.stanzaId <> '' then
+          begin
+            idMensagemOrigem := Result.data.message.extendedTextMessage.contextInfo.stanzaId;
+            memResponse.Lines.Add('idMensagemOrigem: ' + idMensagemOrigem);
+          end;
+
+          if Assigned(Result.data.message.extendedTextMessage.contextInfo.QuotedMessage) then
+          begin
+            if Result.data.message.extendedTextMessage.contextInfo.QuotedMessage.Conversation <> '' then
+            begin
+              quotedMsg_body := Result.data.message.extendedTextMessage.contextInfo.QuotedMessage.Conversation;
+              S_Type_origem := 'extendedTextMessage';
+              memResponse.Lines.Add('quotedMsg_body: ' + quotedMsg_body);
+            end;
+
+          end;
+        end;
+
+        if Result.data.message.extendedTextMessage.text <> '' then
+          Body := Result.data.message.extendedTextMessage.text;
+      end;
+
+      //Contact
+      if Assigned(Result.data.message.contactMessage) then
+      begin
+        if Result.data.message.contactMessage.vcard <> '' then
+        begin
+          Body := Result.data.message.contactMessage.vcard;
+          memResponse.Lines.Add('vcard: ' + Result.data.message.contactMessage.vcard);
+          memResponse.Lines.Add('displayName: ' + Result.data.message.contactMessage.displayName);
+          //memResponse.Lines.Add('displayName: ' + Result.data.message.contactMessage.displayName);
+        end;
+      end;
+
+      //Localidade
+      if Assigned(Result.data.message.locationMessage) then
+      begin
+        if Result.data.message.locationMessage.degreesLatitude > 0 then
+        begin
+          latitude := FloatToStr(Result.data.message.locationMessage.degreesLatitude);
+          longitude := FloatToStr(Result.data.message.locationMessage.degreesLongitude);
+          localidade := Result.data.message.locationMessage.name + ' ' + Result.data.message.locationMessage.address;
+          base64localidade := Result.data.message.locationMessage.jpegThumbnail;
+        end;
+      end;
+
+      //reactionMessage
+      if Assigned(Result.data.message.reactionMessage) then
+      begin
+        if Result.data.message.reactionMessage.text <> '' then
+        begin
+          reaction_emoji := Result.data.message.reactionMessage.text;
+          memResponse.Lines.Add('reaction_emoji: ' + reaction_emoji);
+          Exit;
+        end;
+      end;
+
+      //editedMessage
+      if Assigned(Result.data.message.editedMessage) then
+      begin
+        if Assigned(Result.data.message.editedMessage.message) then
+          if Assigned(Result.data.message.editedMessage.message.protocolMessage) then
+            if Assigned(Result.data.message.editedMessage.message.protocolMessage.editedMessage) then
+            begin
+              if Result.data.message.editedMessage.message.protocolMessage.editedMessage.conversation <> '' then
+              begin
+                Body := Result.data.message.editedMessage.message.protocolMessage.editedMessage.conversation;
+                IdMensagem := Result.data.message.editedMessage.message.protocolMessage.key.id;
+                //remoteJid := Result.data.message.editedMessage.message.protocolMessage.key.remoteJid;
+                remoteJid := Copy(remoteJid, 1, Pos('@', remoteJid) -1 );
+
+                memResponse.Lines.Add('edited Message: ' + Body);
+                memResponse.Lines.Add('remoteJid: ' + remoteJid);
+                memResponse.Lines.Add('IdMensagem: ' + IdMensagem);
+                Exit;
+              end;
+            end;
+      end;
+
 
       if Assigned(Result.data.message.documentMessage)
       and (Result.data.messageType = 'documentMessage') then
@@ -1214,9 +1856,51 @@ begin
 end;
 
 procedure TfrmPrincipal.EvolutionAPI1ResponseConnectionUpdate(Sender: TObject; Response: string);
+var
+  Result: uConnectionUpdateClass.TResponseClass;
 begin
   memResponse.Lines.Add('CONNECTION_UPDATE');
   memResponse.Lines.Add('' + Response + #13#10);
+  try
+    try
+      Result := uConnectionUpdateClass.TResponseClass.FromJsonString(Response);
+
+      memResponse.Lines.Add('instance: ' + Result.instance);
+
+      if Assigned(Result.data) then
+      begin
+        memResponse.Lines.Add('state: ' + Result.data.state);
+        memResponse.Lines.Add('statusReason: ' + FloatToStr(Result.data.statusReason));
+
+        edtInstanceName.Text := Result.data.instance;
+        edtTokenAPI.Text := Result.apikey;
+        edtNumberWhatsApp.Text := Copy(Result.sender, 1, pos('@', Result.sender)-1);
+
+        if Result.data.statusReason = 401 then
+        begin
+          whatsOn.Visible := False;
+          whatsOff.Visible := True;
+          StatusBar1.Panels[1].Text := 'Offline';
+          bFetchInstancesClick(Self);
+        end
+        else
+        begin
+          //bFetchInstancesClick(Self);
+        end;
+
+      end;
+
+      memResponse.Lines.Add('sender: ' + Result.sender);
+      memResponse.Lines.Add('server_url: ' + Result.server_url);
+      memResponse.Lines.Add('apikey: ' + Result.apikey + #13#10);
+
+    except on E: Exception do
+      Exit;
+    end;
+
+  finally
+    Result.Free
+  end;
 end;
 
 procedure TfrmPrincipal.EvolutionAPI1ResponseCONTACTS_SET(Sender: TObject; Response: string);
@@ -1311,9 +1995,43 @@ begin
 end;
 
 procedure TfrmPrincipal.EvolutionAPI1ResponseQrcodeUpdate(Sender: TObject; Response: string);
+var
+  Result: uQrcodeUpdateClass.TResponseQrCodeClass;
 begin
   memResponse.Lines.Add('QRCODE_UPDATE');
   memResponse.Lines.Add('' + Response + #13#10);
+  try
+    try
+      Result := uQrcodeUpdateClass.TResponseQrCodeClass.FromJsonString(Response);
+
+      memResponse.Lines.Add('instance: ' + Result.instance);
+
+      if Assigned(Result.data) then
+      begin
+        if Assigned(Result.data.qrcode) then
+        begin
+          memResponse.Lines.Add('code: ' + Result.data.qrcode.code);
+          memResponse.Lines.Add('bse64: ' + Result.data.qrcode.base64);
+
+          CarregarImagemBase64(Result.data.qrcode.base64, Image3);
+
+          edtInstanceName.Text := Result.data.qrcode.instance;
+          edtTokenAPI.Text := Result.apikey;
+        end;
+      end;
+
+      memResponse.Lines.Add('sender: ' + Result.sender);
+      memResponse.Lines.Add('server_url: ' + Result.server_url);
+      memResponse.Lines.Add('apikey: ' + Result.apikey + #13#10);
+
+    except on E: Exception do
+      Exit;
+    end;
+
+  finally
+    Result.Free
+  end;
+
 end;
 
 procedure TfrmPrincipal.EvolutionAPI1ResponseSEND_MESSAGE(Sender: TObject; Response: string);

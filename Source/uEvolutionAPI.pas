@@ -123,6 +123,7 @@ type
     function SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string = 'false'): string;
     function MarkIsRead(waid, message_id, fromMe: string): string;
     function DeleteMessage(waid, message_id, fromMe, paticipant: string): string;
+    function EditMessage(waid, message_id, fromMe, number, newMessageEdit: string): string;
     function CheckNumberExists(numbers: string): string;
     function fetchProfilePictureUrl(waid: string): string;
     function connectionState(instanceName: string): string;
@@ -133,6 +134,7 @@ type
     function fetchInstances: string;
     function findWebhook(instanceName: string): string;
 
+    function findContacts: string;
     function findChats: string;
     function findMessages(remoteJid: string): string;
     function getBase64FromMediaMessage(id, convertToMp4: string): string;
@@ -740,6 +742,76 @@ begin
 
 end;
 
+function TEvolutionAPI.EditMessage(waid, message_id, fromMe, number, newMessageEdit: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+
+  try
+    if (length(waid) = 11) or (length(waid) = 10) then
+      waid := DDIDefault.ToString + waid;
+
+    if Trim(fromMe) = '' then
+      fromMe := 'true';
+
+    if Trim(number) = '' then
+      number := waid;
+
+    json :=
+      '{ ' +
+      '   "number": ' + '"' + number + '", ' +
+      '   "text": ' + '"' + newMessageEdit + '", ' +
+      '   "key": { ' +
+      '       "remoteJid": "' + waid + '", ' +
+      '       "fromMe": ' + fromMe + ', ' +
+      '       "id": "' + message_id + '" ' +
+      '     } ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/updateMessage/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Put
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak + json + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, 'editMessage: ' + Response);
+
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+
+  end;
+
+end;
+
 function TEvolutionAPI.fetchInstances: string;
 var
   response: string;
@@ -868,6 +940,69 @@ begin
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
         .Get
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+
+  end;
+
+end;
+
+function TEvolutionAPI.findContacts: string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  (*
+
+    /*
+      Here it is possible to list all contacts or just one,
+      using the 'where' option.
+    */
+    {
+      "where": {
+    //    "id": "{{remoteJid}}" /* Optional */
+      }
+    }
+  *)
+
+  try
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/findContacts/')
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        //.AddBody(UTF8Texto)
+        .Post
         .Content;
       //gravar_log(response);
     except
