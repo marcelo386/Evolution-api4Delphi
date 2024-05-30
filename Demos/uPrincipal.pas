@@ -1250,7 +1250,6 @@ begin
     Exit;
   end;
 
-
   //SendReaction(waid, message_id, emoji: string)
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;

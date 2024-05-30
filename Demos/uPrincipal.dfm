@@ -3122,6 +3122,10 @@ object frmPrincipal: TfrmPrincipal
       Visible = False
       object tsImage: TTabSheet
         Caption = 'Image Preview'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Image1: TImage
           Left = 0
           Top = 13
@@ -3138,15 +3142,18 @@ object frmPrincipal: TfrmPrincipal
         object lblCaminhoImagem: TLabel
           Left = 0
           Top = 0
-          Width = 365
+          Width = 3
           Height = 13
           Align = alTop
-          ExplicitWidth = 3
         end
       end
       object tsBase64: TTabSheet
         Caption = 'Base64'
         ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Memo1: TMemo
           Left = 0
           Top = 0
@@ -3757,15 +3764,18 @@ object frmPrincipal: TfrmPrincipal
     TabOrder = 22
     object TabSheet1: TTabSheet
       Caption = 'Log'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label8: TLabel
         AlignWithMargins = True
         Left = 3
         Top = 3
-        Width = 338
+        Width = 51
         Height = 13
         Align = alTop
         Caption = 'Response:'
-        ExplicitWidth = 51
       end
       object memResponse: TMemo
         AlignWithMargins = True
@@ -3780,6 +3790,10 @@ object frmPrincipal: TfrmPrincipal
     object TabSheet2: TTabSheet
       Caption = 'Preview'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object DBGrid1: TDBGrid
         AlignWithMargins = True
         Left = 3
