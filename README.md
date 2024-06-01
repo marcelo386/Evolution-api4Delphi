@@ -28,3 +28,10 @@ C:\Program Files (x86)\Embarcadero\Studio\20.0\source\internet\Web.WebBroker.pas
  <br /> 
  
 ![WhatsApp Image 2023-03-02 at 14 44 24](https://user-images.githubusercontent.com/69150213/222625763-04dcbb6a-efa8-4bb7-8ddf-849c426a8992.jpeg)
+
+
+# Meu Projeto
+
+Bem-vindo ao repositório do meu projeto. Para se juntar ao nosso grupo do WhatsApp, clique no ícone abaixo:
+
+[![WhatsApp](https://img.icons8.com/color/48/000000/whatsapp.png)](https://chat.whatsapp.com/Ljyt8i2nJMzLmmbwe7Lk1U)
