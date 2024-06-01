@@ -20,8 +20,8 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.JSON, System.Net.HttpClient, System.Net.URLClient, IdSSLOpenSSL, IdHTTP,
-  uRetMensagem, StrUtils, Horse, Horse.Commons,  Horse.Core, web.WebBroker,
-  RESTRequest4D, REST.Types, REST.Client, System.Net.Mime, uEvolutionAPI.Emoticons, System.MaskUtils;
+  uRetMensagem, StrUtils, Horse, Horse.Commons,  Horse.Core, web.WebBroker, System.NetEncoding, System.TypInfo,
+  RESTRequest4D, REST.Types, REST.Client, System.Net.Mime, uEvolutionAPI.Emoticons, System.MaskUtils, uDownloadMediaClass;
 
 
 type
@@ -121,6 +121,7 @@ type
     function SendLocation(waid, body, Location, header, footer: string): string;
     function SendReaction(waid, message_id, emoji, fromMe: string): string;
     function SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string = 'false'): string;
+    function SendPoll(waid, pollMessage: string): string;
     function MarkIsRead(waid, message_id, fromMe: string): string;
     function DeleteMessage(waid, message_id, fromMe, paticipant: string): string;
     function EditMessage(waid, message_id, fromMe, number, newMessageEdit: string): string;
@@ -131,6 +132,8 @@ type
     function DeleteInstance(instanceName: string): string;
     function RestartInstance(instanceName: string): string;
     function InstanceConnect(instanceName: string): string;
+    function RegisterMobileCode(instanceName, mobileCode: string): string;
+
     function fetchInstances: string;
     function findWebhook(instanceName: string): string;
 
@@ -144,6 +147,8 @@ type
     function PostMediaFile(FileName, MediaType: string): string;
     function DownloadMedia(id, MimeType: string): string;
     function DownloadMediaURL(url, MimeType, FileName: string): string;
+
+    function Base64ToSaveFile(Base64, mediaType, mimetype, FileName: string): string;
 
     function GetContentTypeFromDataUri(const ADataUri: string): string;
     function GetContentTypeFromExtension(const AContentType: string): string;
@@ -241,6 +246,55 @@ end;
 
 { TWPPCloudAPI }
 
+
+function TEvolutionAPI.Base64ToSaveFile(Base64, mediaType, mimetype, FileName: string): string;
+var
+  LInput: TMemoryStream;
+  LOutput: TMemoryStream;
+  AStr: TStringList;
+  Nome_Arquivo, extensao, diretorio: string;
+begin
+  diretorio := ExtractFilePath(ParamStr(0)) + 'temp\';
+  Sleep(1);
+
+  if not DirectoryExists(diretorio) then
+    CreateDir(diretorio);
+
+  try
+    Result := '';
+    LInput := TMemoryStream.Create;
+    LOutput := TMemoryStream.Create;
+    AStr := TStringList.Create;
+
+    AStr.Add(Base64);
+    AStr.SaveToStream(LInput);
+    LInput.Position := 0;
+    TNetEncoding.Base64.Decode(LInput, LOutput);
+    LOutput.Position := 0;
+
+    extensao := GetExtensionTypeFromContentType(mimetype);
+
+    try
+      Nome_Arquivo := ExtractFilePath(ParamStr(0)) + 'temp\' + mediaType + '-' + FormatDateTime('YYYYMMDDhhmmsszzz', now) + '.' + extensao;
+      LOutput.SaveToFile(Nome_Arquivo);
+      Result := Nome_Arquivo;
+
+    except
+      on E: Exception do
+      begin
+        Result := 'ERROR';
+
+        //Exit;
+      end
+    end;
+
+  finally
+    try LInput.DisposeOf; except end;
+    try LOutput.DisposeOf; except end;
+    try AStr.DisposeOf; except end;
+  end;
+
+end;
 
 function TEvolutionAPI.CaractersWeb(vText: string): string;
 begin
@@ -1174,6 +1228,7 @@ var
   response: string;
   json: string;
   UTF8Texto: UTF8String;
+  ResponseDownloadMedia: uDownloadMediaClass.TResultDownloadMediaClass;
 begin
 (*
   In this endpoint it is possible to extract the Base64 of the media
@@ -1205,7 +1260,7 @@ begin
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
-        .Put
+        .Post
         .Content;
 
       //gravar_log(response);
@@ -1647,78 +1702,26 @@ begin
     body := CaractersWeb(body);
 
     json :=
-      '{ ' +
-      '  "messaging_product": "whatsapp", ' +
-      '  "recipient_type": "individual", ' +
-      '  "to": "' + waid + '", ' +
-      '  "type": "interactive", ' +
-      '  "interactive": {  ' +
-      '    "type": "list", ' +
-      IfThen( Trim(header) <> '' ,
-      '    "header": { ' +
-      '      "type": "text",  ' +
-      '      "text": "' + header + '"  ' +
-      '    }, ', '') +
+      '{' +
+      '"number": "' + waid + '", ' +
+      '"options": { ' +
+      '    "delay": 1200, ' +
+      '    "presence": "composing" ' +
+      '}, ' +
+      '"listMessage": { ' +
+      IfThen( Trim(header) <> '' ,'    "title": "List Title", ', ' ') +
+      '    "description": "' + body + '", ' +
+      '    "buttonText": "'  + Button_Text + '", ' +
+      '    "footerText": "'  + footer + '", ' +
+      '    "sections": [ '   + Sections +
+      '        ] ' +
+      '    } ' +
+      '} ';
 
-      '    "body": { ' +
-      '      "text": "' + body + '" ' +
-      '    }, ' +
-
-      IfThen( Trim(footer) <> '' ,
-      '    "footer": { ' +
-      '      "text": "' + footer + '" ' +
-      '    }, ', '') +
-
-      '    "action": { ' +
-      '      "button": "' + Button_Text + '", ' +
-
-      Sections +
-      (*
-      '      "sections": [  ' +
-      '      {   ' +
-      '        "title": "SECTION_1_TITLE", ' +
-      '        "rows": [ ' +
-      '        { ' +
-      '          "id": "SECTION_1_ROW_1_ID", ' +
-      '          "title": "SECTION_1_ROW_1_TITLE", ' +
-      '          "description": "SECTION_1_ROW_1_DESCRIPTION" ' +
-      '        }, ' +
-      '        {  ' +
-      '          "id": "SECTION_1_ROW_2_ID", ' +
-      '          "title": "SECTION_1_ROW_2_TITLE", ' +
-      '          "description": "SECTION_1_ROW_2_DESCRIPTION" ' +
-      '        } ' +
-      '      ] ' +
-      '      }, ' +
-      '      { ' +
-      '        "title": "SECTION_2_TITLE",  ' +
-      '        "rows": [  ' +
-      '        {  ' +
-      '          "id": "SECTION_2_ROW_1_ID", ' +
-      '          "title": "SECTION_2_ROW_1_TITLE", ' +
-      '          "description": "SECTION_2_ROW_1_DESCRIPTION" ' +
-      '        }, ' +
-      '        {  ' +
-      '          "id": "SECTION_2_ROW_2_ID", ' +
-      '          "title": "SECTION_2_ROW_2_TITLE", ' +
-      '          "description": "SECTION_2_ROW_2_DESCRIPTION"  ' +
-      '          } ' +
-      '         ] ' +
-      '        } ' +
-      '      ] ' +
-      *)
-
-      '  } ' +
-      ' } ' +
-      '}';
-
-    //json := Trim(json);
-    //json := EscapeJsonString(json);
     UTF8Texto := UTF8Encode(json);
 
     try
-
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendList/' + instanceName + '')
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -1989,6 +1992,74 @@ begin
 
 end;
 
+function TEvolutionAPI.SendPoll(waid, pollMessage: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    if (length(waid) = 11) or (length(waid) = 10) then
+      waid := DDIDefault.ToString + waid;
+
+    json :=
+      '{ ' +
+      '    "number": "' + waid + '", ' +
+      '    "options": { ' +
+      '        "delay": 1200, ' +
+      '        "presence": "composing" ' +
+      '    }, ' +
+      '    "pollMessage":  ' + pollMessage +
+      '    ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+    try
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendPoll/' + instanceName + '')
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        //MemoLogApiOficial.Lines.Add(json + SLINEBREAK);
+        if Assigned(FOnRetSendMessage) then
+          FOnRetSendMessage(Self, 'Error: ' + e.Message);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
+      //Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+  finally
+  end;
+
+end;
+
 function TEvolutionAPI.SendReaction(waid, message_id, emoji, fromMe: string): string;
 var
   response: string;
@@ -2017,18 +2088,6 @@ begin
       '    "reaction": "' + emoji + '" ' +
       '  } ' +
       '} ';
-(*
-      '{ ' +
-      '  "messaging_product": "whatsapp", ' +
-      '  "recipient_type": "individual", ' +
-      '  "to": "' + waid + '", ' +
-      '  "type": "reaction", ' +
-      '  "reaction": { ' +
-      '    "message_id": "' + message_id + '", ' +
-      '    "emoji": "' + emoji + '" ' +
-      '  } ' +
-      '}';
-*)
 
     UTF8Texto := UTF8Encode(json);
     try
@@ -2874,6 +2933,63 @@ begin
   end;
 end;
 
+function TEvolutionAPI.RegisterMobileCode(instanceName, mobileCode: string): string;
+var
+  response: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  json :=
+    '{ ' +
+    '    "mobileCode": "' + mobileCode + '" ' +
+    '} ';
+
+  UTF8Texto := UTF8Encode(json);
+
+  try
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/registerMobileCode/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+
+  end;
+
+end;
+
 function TEvolutionAPI.RestartInstance(instanceName: string): string;
 var
   response: string;
@@ -3274,7 +3390,7 @@ begin
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
-        .Get
+        .Post
         .Content;
       //gravar_log(response);
     except

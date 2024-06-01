@@ -356,7 +356,7 @@ object frmPrincipal: TfrmPrincipal
     ParentFont = False
   end
   object Image3: TImage
-    Left = 97
+    Left = 125
     Top = 479
     Width = 140
     Height = 140
@@ -3021,9 +3021,9 @@ object frmPrincipal: TfrmPrincipal
   object Label15: TLabel
     Left = 18
     Top = 81
-    Width = 80
+    Width = 85
     Height = 13
-    Caption = 'Key API Geral:'
+    Caption = 'Key API Global:'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -3122,10 +3122,6 @@ object frmPrincipal: TfrmPrincipal
       Visible = False
       object tsImage: TTabSheet
         Caption = 'Image Preview'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Image1: TImage
           Left = 0
           Top = 13
@@ -3142,18 +3138,15 @@ object frmPrincipal: TfrmPrincipal
         object lblCaminhoImagem: TLabel
           Left = 0
           Top = 0
-          Width = 3
+          Width = 365
           Height = 13
           Align = alTop
+          ExplicitWidth = 3
         end
       end
       object tsBase64: TTabSheet
         Caption = 'Base64'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Memo1: TMemo
           Left = 0
           Top = 0
@@ -3274,16 +3267,17 @@ object frmPrincipal: TfrmPrincipal
     object btnLocalizacaoBotao: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 576
+      Top = 204
       Width = 221
       Height = 25
       Align = alTop
-      Caption = 'Send Location with Button'
+      Caption = 'Send Poll'
       ImageIndex = 11
       Images = ImageList1
       TabOrder = 12
-      Visible = False
-      ExplicitTop = 545
+      OnClick = btnLocalizacaoBotaoClick
+      ExplicitLeft = 13
+      ExplicitTop = 188
     end
     object btnLink: TButton
       AlignWithMargins = True
@@ -3298,24 +3292,24 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 7
       OnClick = btnLinkClick
     end
-    object btnImagemBotao: TButton
+    object btnDownloadMedia: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 483
+      Top = 390
       Width = 221
       Height = 25
       Align = alTop
-      Caption = 'Enviar Imagem com Bot'#227'o'
+      Caption = 'Download Media from id message'
       ImageIndex = 5
       Images = ImageList1
       TabOrder = 6
-      Visible = False
-      ExplicitTop = 452
+      OnClick = btnDownloadMediaClick
+      ExplicitLeft = 7
     end
     object btnImagem: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 390
+      Top = 452
       Width = 221
       Height = 25
       Align = alTop
@@ -3324,12 +3318,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 5
       OnClick = btnImagemClick
-      ExplicitTop = 359
+      ExplicitTop = 390
     end
     object btnVideoBotao: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 452
+      Top = 514
       Width = 221
       Height = 25
       Align = alTop
@@ -3338,12 +3332,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 4
       Visible = False
-      ExplicitTop = 421
+      ExplicitTop = 452
     end
     object btnVideo: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 421
+      Top = 483
       Width = 221
       Height = 25
       Align = alTop
@@ -3353,7 +3347,7 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 3
       Visible = False
-      ExplicitTop = 390
+      ExplicitTop = 421
     end
     object btnListaMenu: TButton
       AlignWithMargins = True
@@ -3367,13 +3361,12 @@ object frmPrincipal: TfrmPrincipal
       ImageIndex = 2
       Images = ImageList1
       TabOrder = 2
-      Visible = False
       OnClick = btnListaMenuClick
     end
     object btnBotaoSimples: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 359
+      Top = 421
       Width = 221
       Height = 25
       Align = alTop
@@ -3384,7 +3377,7 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 1
       Visible = False
       OnClick = btnBotaoSimplesClick
-      ExplicitTop = 328
+      ExplicitTop = 359
     end
     object btnTextoSimples: TButton
       AlignWithMargins = True
@@ -3402,7 +3395,7 @@ object frmPrincipal: TfrmPrincipal
     object btnAudio: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 514
+      Top = 545
       Width = 221
       Height = 25
       Align = alTop
@@ -3412,7 +3405,7 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 8
       Visible = False
       OnClick = btnAudioClick
-      ExplicitTop = 483
+      ExplicitTop = 514
     end
     object btnContato: TButton
       AlignWithMargins = True
@@ -3430,7 +3423,7 @@ object frmPrincipal: TfrmPrincipal
     object btnSticker: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 545
+      Top = 576
       Width = 221
       Height = 25
       Align = alTop
@@ -3440,7 +3433,7 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 9
       Visible = False
       OnClick = btnStickerClick
-      ExplicitTop = 514
+      ExplicitTop = 545
     end
     object btnLocalizacao: TButton
       AlignWithMargins = True
@@ -3471,7 +3464,7 @@ object frmPrincipal: TfrmPrincipal
     object Button2: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 297
+      Top = 328
       Width = 221
       Height = 25
       Align = alTop
@@ -3480,11 +3473,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 14
       OnClick = Button2Click
+      ExplicitTop = 297
     end
     object btnReagir: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 235
+      Top = 266
       Width = 221
       Height = 25
       Align = alTop
@@ -3493,11 +3487,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 15
       OnClick = btnReagirClick
+      ExplicitTop = 235
     end
     object btnResponder: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 204
+      Top = 235
       Width = 221
       Height = 25
       Align = alTop
@@ -3506,11 +3501,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 16
       OnClick = btnResponderClick
+      ExplicitTop = 204
     end
     object BitBtn2: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 266
+      Top = 297
       Width = 221
       Height = 25
       Align = alTop
@@ -3519,11 +3515,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 17
       OnClick = BitBtn2Click
+      ExplicitTop = 266
     end
     object Button1: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 328
+      Top = 359
       Width = 221
       Height = 25
       Align = alTop
@@ -3533,6 +3530,7 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 18
       OnClick = Button1Click
+      ExplicitTop = 328
     end
   end
   object edtInstanceName: TEdit
@@ -3661,12 +3659,12 @@ object frmPrincipal: TfrmPrincipal
   object ProgressBar1: TProgressBar
     Left = 16
     Top = 641
-    Width = 343
+    Width = 368
     Height = 17
     TabOrder = 15
   end
   object BitBtn4: TBitBtn
-    Left = 246
+    Left = 271
     Top = 470
     Width = 113
     Height = 25
@@ -3681,7 +3679,7 @@ object frmPrincipal: TfrmPrincipal
     OnClick = BitBtn4Click
   end
   object bFetchInstances: TBitBtn
-    Left = 246
+    Left = 271
     Top = 499
     Width = 113
     Height = 25
@@ -3696,7 +3694,7 @@ object frmPrincipal: TfrmPrincipal
     OnClick = bFetchInstancesClick
   end
   object BitBtn6: TBitBtn
-    Left = 246
+    Left = 271
     Top = 528
     Width = 113
     Height = 25
@@ -3711,7 +3709,7 @@ object frmPrincipal: TfrmPrincipal
     OnClick = BitBtn6Click
   end
   object BitBtn7: TBitBtn
-    Left = 246
+    Left = 271
     Top = 557
     Width = 113
     Height = 25
@@ -3726,7 +3724,7 @@ object frmPrincipal: TfrmPrincipal
     OnClick = BitBtn7Click
   end
   object BitBtn8: TBitBtn
-    Left = 246
+    Left = 271
     Top = 586
     Width = 113
     Height = 25
@@ -3741,7 +3739,7 @@ object frmPrincipal: TfrmPrincipal
     OnClick = BitBtn8Click
   end
   object BitBtn9: TBitBtn
-    Left = 246
+    Left = 271
     Top = 613
     Width = 113
     Height = 25
@@ -3764,18 +3762,15 @@ object frmPrincipal: TfrmPrincipal
     TabOrder = 22
     object TabSheet1: TTabSheet
       Caption = 'Log'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label8: TLabel
         AlignWithMargins = True
         Left = 3
         Top = 3
-        Width = 51
+        Width = 338
         Height = 13
         Align = alTop
         Caption = 'Response:'
+        ExplicitWidth = 51
       end
       object memResponse: TMemo
         AlignWithMargins = True
@@ -3790,10 +3785,6 @@ object frmPrincipal: TfrmPrincipal
     object TabSheet2: TTabSheet
       Caption = 'Preview'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object DBGrid1: TDBGrid
         AlignWithMargins = True
         Left = 3
@@ -3832,9 +3823,6 @@ object frmPrincipal: TfrmPrincipal
       item
         Width = 200
       end>
-    ExplicitLeft = 2
-    ExplicitTop = 678
-    ExplicitWidth = 227
   end
   object edtTokenAPIGeral: TEdit
     Left = 16
@@ -3849,9 +3837,24 @@ object frmPrincipal: TfrmPrincipal
     ParentFont = False
     TabOrder = 24
   end
+  object BitBtn5: TBitBtn
+    Left = 2
+    Top = 475
+    Width = 120
+    Height = 25
+    Caption = 'Register MobileCode'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 25
+    OnClick = BitBtn5Click
+  end
   object ImageList1: TImageList
     DrawingStyle = dsTransparent
-    Left = 240
+    Left = 265
     Top = 560
     Bitmap = {
       494C01011A003000040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
@@ -4840,7 +4843,7 @@ object frmPrincipal: TfrmPrincipal
     Request.Ranges.Units = 'bytes'
     Request.Ranges = <>
     HTTPOptions = [hoForceEncodeParams]
-    Left = 352
+    Left = 377
     Top = 573
   end
   object FDMemTable1: TFDMemTable

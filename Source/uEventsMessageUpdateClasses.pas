@@ -5,6 +5,16 @@ interface
 uses Generics.Collections, Rest.Json;
 
 type
+
+  TPollUpdatesClass = class
+  private
+    FName: String;
+    FVoters: TArray<String>;
+  public
+    property name: String read FName write FName;
+    property voters: TArray<String> read FVoters write FVoters;
+  end;
+
   TDataClass = class
   private
     FDatetime: Int64;
@@ -13,6 +23,7 @@ type
     FOwner: String;
     FRemoteJid: String;
     FStatus: String;
+    FPollUpdates: TArray<TPollUpdatesClass>;
   public
     property datetime: Int64 read FDatetime write FDatetime;
     property fromMe: Boolean read FFromMe write FFromMe;
@@ -20,6 +31,7 @@ type
     property owner: String read FOwner write FOwner;
     property remoteJid: String read FRemoteJid write FRemoteJid;
     property status: String read FStatus write FStatus;
+    property pollUpdates: TArray<TPollUpdatesClass> read FPollUpdates write FPollUpdates;
     function ToJsonString: string;
     class function FromJsonString(AJsonString: string): TDataClass;
   end;

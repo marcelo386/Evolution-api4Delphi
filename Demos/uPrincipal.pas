@@ -46,7 +46,7 @@ type
     gbAcoesBasicas: TGroupBox;
     btnLocalizacaoBotao: TButton;
     btnLink: TButton;
-    btnImagemBotao: TButton;
+    btnDownloadMedia: TButton;
     btnImagem: TButton;
     btnVideoBotao: TButton;
     btnVideo: TButton;
@@ -121,6 +121,7 @@ type
     Label15: TLabel;
     TimerInicio: TTimer;
     Button1: TButton;
+    BitBtn5: TBitBtn;
     procedure btnTextoSimplesClick(Sender: TObject);
     procedure btnBotaoSimplesClick(Sender: TObject);
     procedure btnListaMenuClick(Sender: TObject);
@@ -171,6 +172,9 @@ type
     procedure BitBtn9Click(Sender: TObject);
     procedure TimerInicioTimer(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure btnLocalizacaoBotaoClick(Sender: TObject);
+    procedure BitBtn5Click(Sender: TObject);
+    procedure btnDownloadMediaClick(Sender: TObject);
 
   private
     procedure CarregarImagemBase64(const Base64Str: string; const Image: TImage);
@@ -197,7 +201,7 @@ implementation
 
 {$R *.dfm}
 
-uses uRetMensagem, uFetchInstancesClass, uConnectionUpdateClass, uQrcodeUpdateClass;
+uses uRetMensagem, uFetchInstancesClass, uConnectionUpdateClass, uQrcodeUpdateClass, uDownloadMediaClass;
 
 const
   AutoFileType = 7; // Default define automaticamente o tipo de arquivo
@@ -402,6 +406,62 @@ begin
   EvolutionAPI1.instanceName := edtInstanceName.Text;
   EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
   sResponse := EvolutionAPI1.InstanceConnect(edtInstanceName.Text);
+
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+
+  memResponse.Lines.Add(sResponse);
+
+  try
+    //sResponse := Trim(Copy(sResponse,1,length(sResponse)-1));
+    //{"instance":
+    //sResponse := '[' + Copy(sResponse,13,length(sResponse)) + ']';
+
+    sResponse := '[' + sResponse + ']';
+
+    JsonToDataset(FDMemTable1, sResponse, 'instance');
+
+    For I := 0 to FDMemTable1.FieldCount - 1 do
+      FDMemTable1.Fields[i].Tag := 120;
+    AutoSizeDBGrid(DBGrid1);
+
+  except on E: Exception do
+  end;
+end;
+
+procedure TfrmPrincipal.BitBtn5Click(Sender: TObject);
+var
+  I : Integer;
+begin
+  if Trim(edtUrlServerEvolutionAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE URL SERVER API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtTokenAPI.Text) = '' then
+  begin
+    ShowMessage('INFORM THE TOKEN API');
+    edtTokenAPI.SetFocus;
+    Exit;
+  end;
+
+  if Trim(edtInstanceName.Text) = '' then
+  begin
+    ShowMessage('INFORM THE "INSTANCE NAME " ');
+    edtInstanceName.SetFocus;
+    Exit;
+  end;
+
+
+  //EvolutionAPI1.urlServer := 'http://localhost';
+  //EvolutionAPI1.Token := 'B6D711FCDE4D4FD5936544120E713976'; //edtTokenAPI.Text;
+  EvolutionAPI1.urlServer := edtUrlServerEvolutionAPI.Text;
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
+
+  sResponse := EvolutionAPI1.RegisterMobileCode(edtInstanceName.Text, '1234');
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
 
@@ -976,6 +1036,27 @@ begin
   memResponse.Lines.Add('');
 end;
 
+procedure TfrmPrincipal.btnDownloadMediaClick(Sender: TObject);
+var
+  ResponseDownloadMedia: uDownloadMediaClass.TResultDownloadMediaClass;
+begin
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  sResponse := EvolutionAPI1.getBase64FromMediaMessage(edtMessage_id.Text, 'false');
+  memResponse.Lines.Add(sResponse);
+
+  ResponseDownloadMedia := uDownloadMediaClass.TResultDownloadMediaClass.FromJsonString(sResponse);
+
+
+  {ResponseDownloadMedia.base64;
+  ResponseDownloadMedia.mediatype;
+  ResponseDownloadMedia.mimetype;
+  ResponseDownloadMedia.caption;}
+
+  EvolutionAPI1.Base64ToSaveFile(ResponseDownloadMedia.base64, ResponseDownloadMedia.mediatype, ResponseDownloadMedia.mimetype, '');
+
+end;
+
 procedure TfrmPrincipal.btnImagemClick(Sender: TObject);
 begin
   if Trim(ed_num.Text) = '' then
@@ -1064,19 +1145,18 @@ begin
 
 
   sSections :=
-      '  "sections": [  ' +
       '    {   ' +
       '      "title": "SECTION_1_TITLE", ' +
       '      "rows": [ ' +
       '        { ' +
-      '          "id": "SECTION_1_ROW_1_ID", ' +
       '          "title": "SECTION_1_ROW_1_TITLE", ' +
-      '          "description": "SECTION_1_ROW_1_DESCRIPTION" ' +
+      '          "description": "SECTION_1_ROW_1_DESCRIPTION", ' +
+      '          "rowId": "SECTION_1_ROW_1_ID" ' +
       '        }, ' +
       '        {  ' +
-      '          "id": "SECTION_1_ROW_2_ID", ' +
       '          "title": "SECTION_1_ROW_2_TITLE", ' +
-      '          "description": "SECTION_1_ROW_2_DESCRIPTION" ' +
+      '          "description": "SECTION_1_ROW_2_DESCRIPTION", ' +
+      '          "rowId": "SECTION_1_ROW_2_ID" ' +
       '        } ' +
       '      ] ' +
       '    }, ' +
@@ -1084,24 +1164,53 @@ begin
       '      "title": "SECTION_2_TITLE",  ' +
       '      "rows": [  ' +
       '        {  ' +
-      '          "id": "SECTION_2_ROW_1_ID", ' +
       '          "title": "SECTION_2_ROW_1_TITLE", ' +
-      '          "description": "SECTION_2_ROW_1_DESCRIPTION" ' +
+      '          "description": "SECTION_2_ROW_1_DESCRIPTION", ' +
+      '          "rowId": "SECTION_2_ROW_1_ID" ' +
       '        }, ' +
       '        {  ' +
-      '          "id": "SECTION_2_ROW_2_ID", ' +
       '          "title": "SECTION_2_ROW_2_TITLE", ' +
-      '          "description": "SECTION_2_ROW_2_DESCRIPTION"  ' +
+      '          "description": "SECTION_2_ROW_2_DESCRIPTION",  ' +
+      '          "rowId": "SECTION_2_ROW_2_ID" ' +
       '        } ' +
       '      ] ' +
-      '     } ' +
-      '    ] ';
+      '     } ';
+
 
 
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
   sResponse := EvolutionAPI1.SendListMenu(ed_num.Text, mem_message.Text, sSections, edtHeader.Text, edtFooter.Text, edtButtonText.Text);
+
+  memResponse.Lines.Add(sResponse);
+end;
+
+procedure TfrmPrincipal.btnLocalizacaoBotaoClick(Sender: TObject);
+var
+  sPollMessage : string;
+begin
+  if Trim(ed_num.Text) = '' then
+  begin
+    ShowMessage('INFORM THE DESTINATION WHATSAPP NUMBER');
+    ed_num.SetFocus;
+    Exit;
+  end;
+
+  sPollMessage :=
+      '{ ' +
+      '   "name": "Main text of the poll", ' +
+      '   "selectableCount": 1, ' +
+      '   "values": [ ' +
+      '      "Question 1", ' +
+      '      "Question 2", ' +
+      '      "Question 3" ' +
+      '   ] ' +
+      '} ';
+
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  sResponse := EvolutionAPI1.SendPoll(ed_num.Text, sPollMessage);
 
   memResponse.Lines.Add(sResponse);
 end;
@@ -1875,6 +1984,14 @@ begin
         edtTokenAPI.Text := Result.apikey;
         edtNumberWhatsApp.Text := Copy(Result.sender, 1, pos('@', Result.sender)-1);
 
+        if Result.data.statusReason = 200 then
+        begin
+          whatsOn.Visible := True;
+          whatsOff.Visible := False;
+          StatusBar1.Panels[1].Text := 'Online';
+          bFetchInstancesClick(Self);
+        end
+        else
         if Result.data.statusReason = 401 then
         begin
           whatsOn.Visible := False;
@@ -1886,7 +2003,6 @@ begin
         begin
           //bFetchInstancesClick(Self);
         end;
-
       end;
 
       memResponse.Lines.Add('sender: ' + Result.sender);
@@ -1953,6 +2069,7 @@ end;
 procedure TfrmPrincipal.EvolutionAPI1ResponseMessageUpdate(Sender: TObject; Response: string);
 var
   Result: uEventsMessageUpdateClasses.TResultEventMessageUpdateClass;
+  m, e: integer;
 begin
   memResponse.Lines.Add('MESSAGES_UPDATE');
 
@@ -1973,6 +2090,20 @@ begin
       memResponse.Lines.Add('id: ' + Result.data.id);
       memResponse.Lines.Add('status: ' + Result.data.status);
       memResponse.Lines.Add('owner: ' + Result.data.owner);
+
+      //Votes
+      if Assigned(Result.data.pollUpdates) then
+      begin
+        for m := 0 to Length(Result.data.pollUpdates) -1 do
+        begin
+          try
+            memResponse.Lines.add('pollUpdates.name: ' + AnsiUpperCase(Result.data.pollUpdates[m].name));
+            for e := 0 to Length(Result.data.pollUpdates[m].voters) -1 do
+              memResponse.Lines.add('pollUpdates.voters: ' + Result.data.pollUpdates[m].voters[e]);
+          except on E: Exception do
+          end;
+        end;
+      end;
     end;
 
     memResponse.Lines.Add('apikey: ' + Result.apikey);
