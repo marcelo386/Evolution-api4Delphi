@@ -103,11 +103,7 @@ type
 
 
   public
-    //Individual
-    function CreateInstanceBasic(instanceName, tokenInstancia, number: string; qrcode: Boolean): string;
-    function CreateInstanceWithWebhook(instanceName, token, number, urlWebhook, eventos: string; qrcode, webhook_by_events: Boolean): string;
-    function SetWebhook(url, events: string; webhook_by_events, webhook_base64: Boolean): string;
-    function SetSettings(reject_call, msg_call, groups_ignore, always_online, read_messages, read_status: string): string;
+    //Send Individual
     function SendText(waid, body: string; previewurl: string = 'false'): string;
     function SendFile(waid, body, typeFile, url: string; const filename: string = ''): string;
     function SendFileBase64(waid, body, typeFile, Base64: string; const filename: string = ''): string;
@@ -115,17 +111,36 @@ type
     function SendNarratedAudioBase64(waid, Base64: string): string;
     function SendSticker(waid, url: string): string;
     function SendStickerBase64(waid, Base64: string): string;
-    function SendButton(waid, body, actions, header, footer: string): string;
+    function SendButton(waid, body, actions, header, footer: string): string; deprecated;
     function SendListMenu(waid, body, sections, header, footer, Button_Text: string): string;
     function SendContact(waid, phoneNumber, formatted_name, options: string): string;
     function SendLocation(waid, body, Location, header, footer: string): string;
     function SendReaction(waid, message_id, emoji, fromMe: string): string;
     function SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string = 'false'): string;
     function SendPoll(waid, pollMessage: string): string;
-    function MarkIsRead(waid, message_id, fromMe: string): string;
+    function SendGhostMetionText(groupJid, body: string; previewurl: string = 'false'): string;
+
+    //Send Status
+    function SendStatus(stype, content, backgroundColor, font, statusJidList: string; allContacts: string = 'true'): string;
+    function SendStatusMedia(stype, urlFile, backgroundColor, font, statusJidList: string; allContacts: string = 'true'; caption: string = ''): string;
+
+
+    //Message
     function DeleteMessage(waid, message_id, fromMe, paticipant: string): string;
     function EditMessage(waid, message_id, fromMe, number, newMessageEdit: string): string;
+    function findMessages(remoteJid: string): string;
+
+    //Chats
     function CheckNumberExists(numbers: string): string;
+    function MarkIsRead(waid, message_id, fromMe: string): string;
+    function findContacts: string;
+    function findChats: string;
+
+    //Instance
+    function CreateInstanceBasic(instanceName, tokenInstancia, number: string; qrcode: Boolean): string;
+    function CreateInstanceWithWebhook(instanceName, token, number, urlWebhook, eventos: string; qrcode, webhook_by_events: Boolean): string;
+    function SetWebhook(url, events: string; webhook_by_events, webhook_base64: Boolean): string;
+    function SetSettings(reject_call, msg_call, groups_ignore, always_online, read_messages, read_status: string): string;
     function fetchProfilePictureUrl(waid: string): string;
     function connectionState(instanceName: string): string;
     function logout(instanceName: string): string;
@@ -133,25 +148,31 @@ type
     function RestartInstance(instanceName: string): string;
     function InstanceConnect(instanceName: string): string;
     function RegisterMobileCode(instanceName, mobileCode: string): string;
-
     function fetchInstances: string;
     function findWebhook(instanceName: string): string;
 
-    function findContacts: string;
-    function findChats: string;
-    function findMessages(remoteJid: string): string;
-    function getBase64FromMediaMessage(id, convertToMp4: string): string;
 
-    //Group
+    //Download Files
+    function getBase64FromMediaMessage(id, convertToMp4: string): string;
+    function Base64ToSaveFile(Base64, mediaType, mimetype, FileName: string): string;
+
+    //Groups and Comunitys
     function CreateGroup(nameGroup, description, participants: string): string;
     function fetchAllGroups(getParticipants: Boolean): string;
     function findParticipants(groupJid: string): string;
     function updateParticipant(action, participants, groupJid: string): string;
+    function updateGroupPicture(urlImage, groupJid: string): string;
+    function updateGroupSubject(subject, groupJid: string): string;
+    function updateGroupDescription(description, groupJid: string): string;
+    function updateGroupSetting(action, groupJid: string): string;
+    function updateToggleEphemeral(expiration, groupJid: string): string;
     function LeaveGroup(groupJid: string): string;
     function fetchinviteCode(groupJid: string): string;
     function acceptInviteCode(inviteCode: string): string;
     function revokeInviteCode(groupJid: string): string;
     function sendInviteUrl(groupJid, description, numbers: string): string;
+    function findGroupInviteCode(inviteCode: string): string;
+    function findGroupJid(groupJid: string): string;
 
 
     function UploadMedia(FileName: string): string;
@@ -159,7 +180,7 @@ type
     function DownloadMedia(id, MimeType: string): string;
     function DownloadMediaURL(url, MimeType, FileName: string): string;
 
-    function Base64ToSaveFile(Base64, mediaType, mimetype, FileName: string): string;
+
 
     function GetContentTypeFromDataUri(const ADataUri: string): string;
     function GetContentTypeFromExtension(const AContentType: string): string;
@@ -1317,6 +1338,103 @@ begin
 
 end;
 
+function TEvolutionAPI.findGroupInviteCode(inviteCode: string): string;
+var
+  response, url: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/inviteInfo/' + instanceName + '?inviteCode=' + inviteCode)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        //.AddBody(UTF8Texto)
+        .Get
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+
+  end;
+
+end;
+
+function TEvolutionAPI.findGroupJid(groupJid: string): string;
+var
+  response, url: string;
+  json: string;
+  UTF8Texto: UTF8String;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+begin
+  Result := '';
+
+  try
+    try
+      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/findGroupInfos/' + instanceName + '?groupJid=' + groupJid)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        //.AddBody(UTF8Texto)
+        .Get
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + SLineBreak;
+        Exit;
+      end;
+    end;
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
+end;
+
 function TEvolutionAPI.findMessages(remoteJid: string): string;
 var
   response: string;
@@ -1963,6 +2081,79 @@ begin
 
 end;
 
+function TEvolutionAPI.SendGhostMetionText(groupJid, body, previewurl: string): string;
+var
+  response: string;
+  json: string;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  url: string;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+
+    body := CaractersWeb(body);
+
+    json :=
+      '{ ' +
+      '    "number": "' + groupJid + '", ' +
+      '    "options": { ' +
+      '        "delay": 1200, ' +
+      '        "presence": "composing", ' +
+      //'        "linkPreview": ' + previewurl +  ' ' +
+      '        "mentions": { ' +
+      '            "everyOne": true ' +
+      '        } ' +
+      '    }, ' +
+      '    "textMessage": { ' +
+      '        "text": "' + body + '" ' +
+      '    } ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    url := urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName;
+
+    try
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + ' url: ' + url + ' json: ' + json;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      Result := RetEnvMensagem.key.id;
+
+      //Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message  + ' url:' + url;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
+end;
+
 function TEvolutionAPI.sendInviteUrl(groupJid, description, numbers: string): string;
 var
   response: string;
@@ -2553,6 +2744,162 @@ begin
       end;
     end;
 
+
+  finally
+  end;
+
+end;
+
+function TEvolutionAPI.SendStatus(stype, content, backgroundColor, font, statusJidList, allContacts: string): string;
+var
+  response: string;
+  json: string;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  url: string;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+    content := CaractersWeb(content);
+
+    json :=
+      '{ ' +
+      '    "statusMessage": {' +
+      '       "type": "' + stype + '", ' + //Text
+      '       "content": "' + content + '", ' + //Text or Url
+      '       "backgroundColor": "' + backgroundColor + '", ' +  // Optional for text only. Accepts any color code. Examples:
+                                                                 // #FFFFFF = White
+                                                                 // #0000FF = Blue
+                                                                 // #008000 = Green
+                                                                 // #FFFF00 = Yellow
+                                                                 // #FF0000 = Red
+                                                                 // #800080 = Purple
+                                                                 // #808080 = Gray
+                                                                 // #FFC0CB = Pink
+      '       "font": "' + font + '", ' +
+      '       "allContacts": "' + allContacts + '", ' +  //"true" to send to all contacts or
+                                                         //"false" to send to statusJidList below
+      '       "statusJidList": [' + statusJidList + '] ' +
+
+      '    } ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    url := urlServer + ':' + Port.ToString + '/message/sendStatus/' + instanceName;
+
+    try
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + ' url: ' + url + ' json: ' + json;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      //Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message  + ' url:' + url;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
+end;
+
+function TEvolutionAPI.SendStatusMedia(stype, urlFile, backgroundColor, font, statusJidList, allContacts, caption: string): string;
+var
+  response: string;
+  json: string;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  url: string;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+
+    json :=
+      '{ ' +
+      '    "statusMessage": {' +
+      '       "type": "' + stype + '", ' + //image or video ou audio
+      '       "content": "' + urlFile + '", ' + //url image or video or audio
+      '       "caption": "' + caption + '", ' + //Optional for image or video
+      '       "backgroundColor": "' + backgroundColor + '", ' +  // Optional for text only. Accepts any color code. Examples:
+                                                                 // #FFFFFF = White
+                                                                 // #0000FF = Blue
+                                                                 // #008000 = Green
+                                                                 // #FFFF00 = Yellow
+                                                                 // #FF0000 = Red
+                                                                 // #800080 = Purple
+                                                                 // #808080 = Gray
+                                                                 // #FFC0CB = Pink
+      '       "font": "' + font + '", ' +
+      '       "allContacts": "' + allContacts + '", ' +  //"true" to send to all contacts or
+                                                         //"false" to send to statusJidList below
+      '       "statusJidList": [' + statusJidList + '] ' +
+
+      '    } ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    url := urlServer + ':' + Port.ToString + '/message/sendStatus/' + instanceName;
+
+    try
+      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + ' url: ' + url + ' json: ' + json;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      //Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message  + ' url:' + url;
+        Exit;
+      end;
+    end;
 
   finally
   end;
@@ -3204,6 +3551,233 @@ begin
   THorse.StopListen;
 end;
 
+function TEvolutionAPI.updateGroupDescription(description, groupJid: string): string;
+var
+  response: string;
+  json: string;
+  RetEnvMensagem: uRetMensagem.TRetCreateInstanceClass;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+    json :=
+      '{ ' +
+      '  "description": "' + description + '" ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateGroupDescription/' + instanceName + '?groupJid=' + groupJid)
+        .ContentType('application/json')
+        //.Token(token);
+        .AddHeader('apikey', token)
+        .AddBody(UTF8Texto)
+        .Put
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJSON(response);
+      //Result := RetEnvMensagem.key.id;
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
+end;
+
+function TEvolutionAPI.updateGroupPicture(urlImage, groupJid: string): string;
+var
+  response: string;
+  json: string;
+  RetEnvMensagem: uRetMensagem.TRetCreateInstanceClass;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+    json :=
+      '{ ' +
+      '  "image": "' + urlImage + '" ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateGroupPicture/' + instanceName + '?groupJid=' + groupJid)
+        .ContentType('application/json')
+        //.Token(token);
+        .AddHeader('apikey', token)
+        .AddBody(UTF8Texto)
+        .Put
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJSON(response);
+      //Result := RetEnvMensagem.key.id;
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
+end;
+
+function TEvolutionAPI.updateGroupSetting(action, groupJid: string): string;
+var
+  response: string;
+  json: string;
+  RetEnvMensagem: uRetMensagem.TRetCreateInstanceClass;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+    json :=
+      '{ ' +
+      '  "action": "' + action + '" ' + // announcement = Only Admins send messages
+                                        // not_announcement = All Members send messages
+                                        // locked = Only Admins edit group settings
+                                        // unlocked = All Members edit group settings
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateSetting/' + instanceName + '?groupJid=' + groupJid)
+        .ContentType('application/json')
+        //.Token(token);
+        .AddHeader('apikey', token)
+        .AddBody(UTF8Texto)
+        .Put
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJSON(response);
+      //Result := RetEnvMensagem.key.id;
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
+end;
+
+function TEvolutionAPI.updateGroupSubject(subject, groupJid: string): string;
+var
+  response: string;
+  json: string;
+  RetEnvMensagem: uRetMensagem.TRetCreateInstanceClass;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+    json :=
+      '{ ' +
+      '  "subject": "' + subject + '" ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateGroupSubject/' + instanceName + '?groupJid=' + groupJid)
+        .ContentType('application/json')
+        //.Token(token);
+        .AddHeader('apikey', token)
+        .AddBody(UTF8Texto)
+        .Put
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJSON(response);
+      //Result := RetEnvMensagem.key.id;
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
+end;
+
 function TEvolutionAPI.updateParticipant(action, participants, groupJid: string): string;
 var
   response: string;
@@ -3227,6 +3801,65 @@ begin
 
     try
       response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateParticipant/' + instanceName + '?groupJid=' + groupJid)
+        .ContentType('application/json')
+        //.Token(token);
+        .AddHeader('apikey', token)
+        .AddBody(UTF8Texto)
+        .Put
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJSON(response);
+      //Result := RetEnvMensagem.key.id;
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
+end;
+
+function TEvolutionAPI.updateToggleEphemeral(expiration, groupJid: string): string;
+var
+  response: string;
+  json: string;
+  RetEnvMensagem: uRetMensagem.TRetCreateInstanceClass;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+    json :=
+      '{ ' +
+      '  "expiration": "' + expiration + '" ' + // 0 = Off
+                                                // 86400 = 24 Hours
+                                                // 604800 = 7 Days
+                                                // 7776000 = 90 Days
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/toggleEphemeral/' + instanceName + '?groupJid=' + groupJid)
         .ContentType('application/json')
         //.Token(token);
         .AddHeader('apikey', token)
