@@ -11,7 +11,8 @@ uses
   uRetMensagem in '..\Source\uRetMensagem.pas',
   uEvolutionAPI in '..\Source\uEvolutionAPI.pas',
   uWhatsAppBusinessClasses in '..\Source\uWhatsAppBusinessClasses.pas',
-  uEventsMessageClasses in '..\Source\uEventsMessageClasses.pas';
+  uEventsMessageClasses in '..\Source\uEventsMessageClasses.pas',
+  uDownloadMediaClass in '..\Source\uDownloadMediaClass.pas';
 
 {$R *.res}
 

@@ -143,6 +143,7 @@
         <DCCReference Include="..\Source\uEvolutionAPI.pas"/>
         <DCCReference Include="..\Source\uWhatsAppBusinessClasses.pas"/>
         <DCCReference Include="..\Source\uEventsMessageClasses.pas"/>
+        <DCCReference Include="..\Source\uDownloadMediaClass.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
