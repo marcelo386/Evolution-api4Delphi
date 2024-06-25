@@ -97,6 +97,8 @@ type
     FAllowOneDigit: Boolean;
     FLengthDDI: integer;
 
+    wpu_url: string;
+
     function CaractersWeb(vText: string): string;
 
   protected
@@ -410,7 +412,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/chat/whatsappNumbers/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/chat/whatsappNumbers/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/chat/whatsappNumbers/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/chat/whatsappNumbers/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -459,7 +466,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/connectionState/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/instance/connectionState/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/instance/connectionState/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/connectionState/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -578,7 +590,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/instance/create')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/instance/create' else
+        wpu_url := urlServer + ':' + Port.ToString + '/instance/create';
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/instance/create')
         .ContentType('application/json')
         //.Token(token);
         .AddHeader('apikey', token)
@@ -642,7 +659,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/instance/create')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/instance/create' else
+        wpu_url := urlServer + ':' + Port.ToString + '/instance/create';
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/instance/create')
         .ContentType('application/json')
         .AddHeader('apikey', token)
         .AddBody(UTF8Texto)
@@ -691,7 +713,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/delete/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/instance/delete/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/instance/delete/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/delete/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -759,7 +786,12 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/deleteMessageForEveryone/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/chat/deleteMessageForEveryone/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/chat/deleteMessageForEveryone/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/deleteMessageForEveryone/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -971,7 +1003,12 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/updateMessage/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/chat/updateMessage/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/chat/updateMessage/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/updateMessage/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -1074,7 +1111,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/fetchInstances/')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/instance/fetchInstances' else
+        wpu_url := urlServer + ':' + Port.ToString + '/instance/fetchInstances';
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/fetchInstances/')
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -1183,7 +1225,12 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/chat/fetchProfilePictureUrl/' + instanceName + '')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/chat/fetchProfilePictureUrl/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/chat/fetchProfilePictureUrl/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/chat/fetchProfilePictureUrl/' + instanceName + '')
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -1236,7 +1283,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/findChats/')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/chat/findChats/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/chat/findChats/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/findChats/')
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -1299,7 +1351,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/findContacts/')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/chat/findContacts/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/chat/findContacts/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/findContacts/')
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -1459,7 +1516,12 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/chat/findMessages/' + instanceName + '')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/chat/findMessages/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/chat/findMessages/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/chat/findMessages/' + instanceName + '')
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -1563,7 +1625,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/webhook/find/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/webhook/find/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/webhook/find/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/webhook/find/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -1650,7 +1717,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/getBase64FromMediaMessage/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/chat/getBase64FromMediaMessage/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/chat/getBase64FromMediaMessage/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/getBase64FromMediaMessage/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -1705,7 +1777,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/markMessageAsRead/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/chat/markMessageAsRead/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/chat/markMessageAsRead/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/chat/markMessageAsRead/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -1883,8 +1960,12 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendContact/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendContact/' + instanceName;
 
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendContact/' + instanceName)
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendContact/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -1954,7 +2035,11 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendMedia/' + instanceName + '')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendMedia/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendMedia/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -2039,7 +2124,11 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendMedia/' + instanceName + '')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendMedia/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendMedia/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -2115,7 +2204,12 @@ begin
     url := urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName;
 
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendText/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -2247,7 +2341,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendList/' + instanceName + '')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendList/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendList/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendList/' + instanceName + '')
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -2331,7 +2430,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendLocation/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendLocation/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendLocation/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendLocation/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -2395,7 +2499,11 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendWhatsAppAudio/' + instanceName + '')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendWhatsAppAudio/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendWhatsAppAudio/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -2475,7 +2583,12 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendWhatsAppAudio/' + instanceName + '')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendWhatsAppAudio/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendWhatsAppAudio/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendWhatsAppAudio/' + instanceName + '')
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -2544,7 +2657,12 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendPoll/' + instanceName + '')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendPoll/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendPoll/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendPoll/' + instanceName + '')
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -2617,7 +2735,12 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendReaction/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendReaction/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendReaction/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendReaction/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -2712,7 +2835,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendText/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendText/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/message/sendText/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -2789,7 +2917,12 @@ begin
     url := urlServer + ':' + Port.ToString + '/message/sendStatus/' + instanceName;
 
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendStatus/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendStatus/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -2867,7 +3000,12 @@ begin
     url := urlServer + ':' + Port.ToString + '/message/sendStatus/' + instanceName;
 
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendStatus/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendStatus/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -2933,7 +3071,12 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendSticker/' + instanceName + '')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendSticker/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendSticker/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendSticker/' + instanceName + '')
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -3011,7 +3154,11 @@ begin
 
     UTF8Texto := UTF8Encode(json);
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendSticker/' + instanceName + '')
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/message/sendSticker/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/message/sendSticker/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -3058,7 +3205,6 @@ var
   response: string;
   json: string;
   RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
-  url: string;
   UTF8Texto: UTF8String;
 begin
   Result := '';
@@ -3083,10 +3229,12 @@ begin
 
     UTF8Texto := UTF8Encode(json);
 
-    url := urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName;
+    if (Port = 80) or (Port = 0) then
+      wpu_url := urlServer + '/message/sendText/' + instanceName else
+      wpu_url := urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName;
 
     try
-      response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName)
+      response:= TRequest.New.BaseURL(wpu_url)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -3098,7 +3246,7 @@ begin
       begin
 
         //gravar_log('ERROR ' + e.Message + SLINEBREAK);
-        Result := 'Error: ' + e.Message + ' url: ' + url + ' json: ' + json;
+        Result := 'Error: ' + e.Message + ' url: ' + wpu_url + ' json: ' + json;
         Exit;
       end;
     end;
@@ -3115,7 +3263,7 @@ begin
     except
       on E: Exception do
       begin
-        Result := 'Error: ' + e.Message  + ' url:' + url;
+        Result := 'Error: ' + e.Message  + ' url:' + wpu_url;
         Exit;
       end;
     end;
@@ -3151,7 +3299,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/settings/set/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/settings/set/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/settings/set/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/settings/set/' + instanceName)
         .ContentType('application/json')
         .AddHeader('apikey', token)
         .AddBody(UTF8Texto)
@@ -3209,7 +3362,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/webhook/set/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/webhook/set/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/webhook/set/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/webhook/set/' + instanceName)
         .ContentType('application/json')
         .AddHeader('apikey', token)
         .AddBody(UTF8Texto)
@@ -3980,7 +4138,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/registerMobileCode/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/instance/registerMobileCode/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/instance/registerMobileCode/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/registerMobileCode/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -4030,7 +4193,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/restart/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/instance/restart/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/instance/restart/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/restart/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -4465,7 +4633,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/connect/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/instance/connect/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/instance/connect/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/connect/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -4565,7 +4738,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/logout/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/instance/logout/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/instance/logout/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/instance/logout/' + instanceName)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
