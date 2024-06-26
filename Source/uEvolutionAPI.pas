@@ -292,7 +292,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/acceptInviteCode/' + instanceName + '?inviteCode=' + inviteCode)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/acceptInviteCode/' + instanceName + '?inviteCode=' + inviteCode else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/acceptInviteCode/' + instanceName + '?inviteCode=' + inviteCode;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/acceptInviteCode/' + instanceName + '?inviteCode=' + inviteCode)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -529,7 +534,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/create/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/create/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/create/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/create/' + instanceName)
         .ContentType('application/json')
         //.Token(token);
         .AddHeader('apikey', token)
@@ -1056,12 +1066,17 @@ begin
 
   try
     try
-      if getParticipants then
-        url := urlServer+ ':' + Port.ToString + '/group/fetchAllGroups/' + instanceName + '?getParticipants=true'
-      else
-        url := urlServer+ ':' + Port.ToString + '/group/fetchAllGroups/' + instanceName + '?getParticipants=false';
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/fetchAllGroups/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/fetchAllGroups/' + instanceName;
 
-      response:= TRequest.New.BaseURL(url)
+
+      if getParticipants then
+        wpu_url := wpu_url + '?getParticipants=true'
+      else
+        wpu_url := wpu_url + '?getParticipants=false';
+
+      response:= TRequest.New.BaseURL(wpu_url)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -1166,7 +1181,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/inviteCode/' + instanceName + '?groupJid=' + groupJid)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/inviteCode/' + instanceName + '?groupJid=' + groupJid else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/inviteCode/' + instanceName + '?groupJid=' + groupJid;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/inviteCode/' + instanceName + '?groupJid=' + groupJid)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -1406,7 +1426,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/inviteInfo/' + instanceName + '?inviteCode=' + inviteCode)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/inviteInfo/' + instanceName + '?inviteCode=' + inviteCode else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/inviteInfo/' + instanceName + '?inviteCode=' + inviteCode;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/inviteInfo/' + instanceName + '?inviteCode=' + inviteCode)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -1454,7 +1479,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/findGroupInfos/' + instanceName + '?groupJid=' + groupJid)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/findGroupInfos/' + instanceName + '?groupJid=' + groupJid else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/findGroupInfos/' + instanceName + '?groupJid=' + groupJid;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/findGroupInfos/' + instanceName + '?groupJid=' + groupJid)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -1575,7 +1605,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/participants/' + instanceName + '?groupJid=' + groupJid)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/participants/' + instanceName + '?groupJid=' + groupJid else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/participants/' + instanceName + '?groupJid=' + groupJid;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/participants/' + instanceName + '?groupJid=' + groupJid)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -2268,7 +2303,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/sendInvite/' + instanceName)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/sendInvite/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/sendInvite/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/sendInvite/' + instanceName)
         .ContentType('application/json')
         //.Token(token);
         .AddHeader('apikey', token)
@@ -3726,7 +3766,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateGroupDescription/' + instanceName + '?groupJid=' + groupJid)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/updateGroupDescription/' + instanceName + '?groupJid=' + groupJid else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/updateGroupDescription/' + instanceName + '?groupJid=' + groupJid;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateGroupDescription/' + instanceName + '?groupJid=' + groupJid)
         .ContentType('application/json')
         //.Token(token);
         .AddHeader('apikey', token)
@@ -3782,7 +3827,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateGroupPicture/' + instanceName + '?groupJid=' + groupJid)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/updateGroupPicture/' + instanceName + '?groupJid=' + groupJid else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/updateGroupPicture/' + instanceName + '?groupJid=' + groupJid;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateGroupPicture/' + instanceName + '?groupJid=' + groupJid)
         .ContentType('application/json')
         //.Token(token);
         .AddHeader('apikey', token)
@@ -3841,7 +3891,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateSetting/' + instanceName + '?groupJid=' + groupJid)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/updateSetting/' + instanceName + '?groupJid=' + groupJid else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/updateSetting/' + instanceName + '?groupJid=' + groupJid;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateSetting/' + instanceName + '?groupJid=' + groupJid)
         .ContentType('application/json')
         //.Token(token);
         .AddHeader('apikey', token)
@@ -3897,7 +3952,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateGroupSubject/' + instanceName + '?groupJid=' + groupJid)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/updateGroupSubject/' + instanceName + '?groupJid=' + groupJid else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/updateGroupSubject/' + instanceName + '?groupJid=' + groupJid;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateGroupSubject/' + instanceName + '?groupJid=' + groupJid)
         .ContentType('application/json')
         //.Token(token);
         .AddHeader('apikey', token)
@@ -3958,7 +4018,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateParticipant/' + instanceName + '?groupJid=' + groupJid)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/updateParticipant/' + instanceName + '?groupJid=' + groupJid else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/updateParticipant/' + instanceName + '?groupJid=' + groupJid;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateParticipant/' + instanceName + '?groupJid=' + groupJid)
         .ContentType('application/json')
         //.Token(token);
         .AddHeader('apikey', token)
@@ -4017,7 +4082,12 @@ begin
     UTF8Texto := UTF8Encode(json);
 
     try
-      response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/toggleEphemeral/' + instanceName + '?groupJid=' + groupJid)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/toggleEphemeral/' + instanceName + '?groupJid=' + groupJid else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/toggleEphemeral/' + instanceName + '?groupJid=' + groupJid;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/toggleEphemeral/' + instanceName + '?groupJid=' + groupJid)
         .ContentType('application/json')
         //.Token(token);
         .AddHeader('apikey', token)
@@ -4248,7 +4318,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/revokeInviteCode/' + instanceName + '?groupJid=' + groupJid)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/revokeInviteCode/' + instanceName + '?groupJid=' + groupJid else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/revokeInviteCode/' + instanceName + '?groupJid=' + groupJid;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/revokeInviteCode/' + instanceName + '?groupJid=' + groupJid)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
@@ -4688,7 +4763,12 @@ begin
 
   try
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/leaveGroup/' + instanceName + '?groupJid=' + groupJid)
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/group/leaveGroup/' + instanceName + '?groupJid=' + groupJid else
+        wpu_url := urlServer + ':' + Port.ToString + '/group/leaveGroup/' + instanceName + '?groupJid=' + groupJid;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/group/leaveGroup/' + instanceName + '?groupJid=' + groupJid)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
