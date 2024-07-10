@@ -6,7 +6,7 @@
         <MainSource>EvolutionAPI4DelphiDEMO.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
     </PropertyGroup>
@@ -116,6 +116,8 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_ExeOutput>C:\Executaveis\EvolutionAPI4DelphiDEMO64bit</DCC_ExeOutput>
         <DCC_DcuOutput>C:\Executaveis\EvolutionAPI4DelphiDEMO64bit\objeto</DCC_DcuOutput>
+        <DCC_Define>madExcept;$(DCC_Define)</DCC_Define>
+        <DCC_MapFile>3</DCC_MapFile>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>

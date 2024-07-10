@@ -1048,11 +1048,6 @@ begin
   ResponseDownloadMedia := uDownloadMediaClass.TResultDownloadMediaClass.FromJsonString(sResponse);
 
 
-  {ResponseDownloadMedia.base64;
-  ResponseDownloadMedia.mediatype;
-  ResponseDownloadMedia.mimetype;
-  ResponseDownloadMedia.caption;}
-
   EvolutionAPI1.Base64ToSaveFile(ResponseDownloadMedia.base64, ResponseDownloadMedia.mediatype, ResponseDownloadMedia.mimetype, '');
 
 end;
