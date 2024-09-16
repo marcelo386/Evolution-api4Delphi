@@ -15,6 +15,49 @@ uses Generics.Collections, Rest.Json;
 
 type
 
+TcountClass = class
+private
+  FChat: Extended;
+  FContact: Extended;
+  FMessage: Extended;
+public
+  property Chat: Extended read FChat write FChat;
+  property Contact: Extended read FContact write FContact;
+  property Message: Extended read FMessage write FMessage;
+  //function ToJsonString: string;
+  //class function FromJsonString(AJsonString: string): TcountClass;
+end;
+
+TSettingClass = class
+private
+  FAlwaysOnline: Boolean;
+  FCreatedAt: String;
+  FGroupsIgnore: Boolean;
+  FId: String;
+  FInstanceId: String;
+  FMsgCall: String;
+  FReadMessages: Boolean;
+  FReadStatus: Boolean;
+  FRejectCall: Boolean;
+  FSyncFullHistory: Boolean;
+  FUpdatedAt: String;
+public
+  property alwaysOnline: Boolean read FAlwaysOnline write FAlwaysOnline;
+  property createdAt: String read FCreatedAt write FCreatedAt;
+  property groupsIgnore: Boolean read FGroupsIgnore write FGroupsIgnore;
+  property id: String read FId write FId;
+  property instanceId: String read FInstanceId write FInstanceId;
+  property msgCall: String read FMsgCall write FMsgCall;
+  property readMessages: Boolean read FReadMessages write FReadMessages;
+  property readStatus: Boolean read FReadStatus write FReadStatus;
+  property rejectCall: Boolean read FRejectCall write FRejectCall;
+  property syncFullHistory: Boolean read FSyncFullHistory write FSyncFullHistory;
+  property updatedAt: String read FUpdatedAt write FUpdatedAt;
+  //function ToJsonString: string;
+  //class function FromJsonString(AJsonString: string): TSettingClass;
+end;
+
+
 TInstanceClass = class
 private
   FApikey: String;
@@ -26,6 +69,22 @@ private
   FProfileStatus: String;
   FServerUrl: String;
   FStatus: String;
+
+  //Versão 2.0
+  FSetting: TSettingClass;
+  F_count: TcountClass;
+  FConnectionStatus: String;
+  FName: String;
+  FIntegration: String;
+  FUpdatedAt: String;
+  FId: String;
+  FProfilePicUrl: String;
+  FToken: String;
+  FNumber: String;
+  FOwnerJid: String;
+  FCreatedAt: String;
+  FClientName: String;
+
 public
   property apikey: String read FApikey write FApikey;
   property instanceId: String read FInstanceId write FInstanceId;
@@ -36,6 +95,23 @@ public
   property profileStatus: String read FProfileStatus write FProfileStatus;
   property serverUrl: String read FServerUrl write FServerUrl;
   property status: String read FStatus write FStatus;
+
+  //Versão 2.0
+  property Setting          : TSettingClass  read FSetting          write FSetting;
+  property _count           : TcountClass    read F_count           write F_count;
+  property clientName       : String         read FClientName       write FClientName;
+  property connectionStatus : String         read FConnectionStatus write FConnectionStatus;
+  property createdAt        : String         read FCreatedAt        write FCreatedAt;
+  property id               : String         read FId               write FId;
+  property integration      : String         read FIntegration      write FIntegration;
+  property name             : String         read FName             write FName;
+  property number           : String         read FNumber           write FNumber;
+  property ownerJid         : String         read FOwnerJid         write FOwnerJid;
+
+  property profilePicUrl: String read FProfilePicUrl write FProfilePicUrl;
+  property token: String read FToken write FToken;
+  property updatedAt: String read FUpdatedAt write FUpdatedAt;
+
   function ToJsonString: string;
   class function FromJsonString(AJsonString: string): TInstanceClass;
 end;

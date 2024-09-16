@@ -98,6 +98,7 @@ type
     FLengthDDI: integer;
 
     wpu_url: string;
+    Fversion2latest: Boolean;
 
     function CaractersWeb(vText: string): string;
 
@@ -199,6 +200,8 @@ type
     property Port              : Integer                 read FPort               write FPort               Default 8080;
     property PortWebhook       : Integer                 read FPortWebhook        write FPortWebhook        Default 8020;
     property DDIDefault        : Integer                 read FDDIDefault         write FDDIDefault         Default 55;
+    property version2latest    : Boolean                 read Fversion2latest     write Fversion2latest         Default false;
+
 
     property LengthDDI         : integer                 read FLengthDDI          write FLengthDDI Default 2;
     property LengthDDD         : Integer                 read FLengthDDD          write FLengthDDD Default 2;
@@ -3105,18 +3108,31 @@ begin
 
     body := CaractersWeb(body);
 
-    json :=
-      '{ ' +
-      '    "number": "' + waid + '", ' +
-      '    "options": { ' +
-      '        "delay": 1200, ' +
-      '        "presence": "composing", ' +
-      '        "linkPreview": ' + previewurl +  ' ' +
-      '    }, ' +
-      '    "textMessage": { ' +
-      '        "text": "' + body + '" ' +
-      '    } ' +
-      '} ';
+    if version2latest then
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "text": "' + body + '", ' +
+        '    "delay": 500' +
+        //'    "linkPreview": ' + previewurl +  ' ' +
+        '} ';
+    end
+    else
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "options": { ' +
+        '        "delay": 1200, ' +
+        '        "presence": "composing", ' +
+        '        "linkPreview": ' + previewurl +  ' ' +
+        '    }, ' +
+        '    "textMessage": { ' +
+        '        "text": "' + body + '" ' +
+        '    } ' +
+        '} ';
+    end;
 
     UTF8Texto := UTF8Encode(json);
 
