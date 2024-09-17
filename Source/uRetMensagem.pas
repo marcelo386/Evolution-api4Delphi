@@ -74,175 +74,301 @@ type
   end;
 
 
-TQrcodeClass = class
-private
-  FBase64: String;
-  FCode: String;
-  FCount: Extended;
-  FPairingCode: String;
-public
-  property base64: String read FBase64 write FBase64;
-  property code: String read FCode write FCode;
-  property count: Extended read FCount write FCount;
-  property pairingCode: String read FPairingCode write FPairingCode;
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TQrcodeClass;
-end;
+  TQrcodeClass = class
+  private
+    FBase64: String;
+    FCode: String;
+    FCount: Extended;
+    FPairingCode: String;
+  public
+    property base64: String read FBase64 write FBase64;
+    property code: String read FCode write FCode;
+    property count: Extended read FCount write FCount;
+    property pairingCode: String read FPairingCode write FPairingCode;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TQrcodeClass;
+  end;
 
-TSettingsClass = class
-private
-  FAlways_online: Boolean;
-  FGroups_ignore: Boolean;
-  FMsg_call: String;
-  FRead_messages: Boolean;
-  FRead_status: Boolean;
-  FReject_call: Boolean;
-public
-  property always_online: Boolean read FAlways_online write FAlways_online;
-  property groups_ignore: Boolean read FGroups_ignore write FGroups_ignore;
-  property msg_call: String read FMsg_call write FMsg_call;
-  property read_messages: Boolean read FRead_messages write FRead_messages;
-  property read_status: Boolean read FRead_status write FRead_status;
-  property reject_call: Boolean read FReject_call write FReject_call;
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TSettingsClass;
-end;
+  TSettingsClass = class
+  private
+    FAlways_online: Boolean;
+    FGroups_ignore: Boolean;
+    FMsg_call: String;
+    FRead_messages: Boolean;
+    FRead_status: Boolean;
+    FReject_call: Boolean;
+  public
+    property always_online: Boolean read FAlways_online write FAlways_online;
+    property groups_ignore: Boolean read FGroups_ignore write FGroups_ignore;
+    property msg_call: String read FMsg_call write FMsg_call;
+    property read_messages: Boolean read FRead_messages write FRead_messages;
+    property read_status: Boolean read FRead_status write FRead_status;
+    property reject_call: Boolean read FReject_call write FReject_call;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TSettingsClass;
+  end;
 
-TTypebotClass = class
-private
-  FEnabled: Boolean;
-public
-  property enabled: Boolean read FEnabled write FEnabled;
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TTypebotClass;
-end;
+  TTypebotClass = class
+  private
+    FEnabled: Boolean;
+  public
+    property enabled: Boolean read FEnabled write FEnabled;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TTypebotClass;
+  end;
 
-TSqsClass = class
-private
-public
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TSqsClass;
-end;
+  TSqsClass = class
+  private
+  public
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TSqsClass;
+  end;
 
-TRabbitmqClass = class
-private
-public
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TRabbitmqClass;
-end;
+  TRabbitmqClass = class
+  private
+  public
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TRabbitmqClass;
+  end;
 
-TWebsocketClass = class
-private
-public
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TWebsocketClass;
-end;
+  TWebsocketClass = class
+  private
+  public
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TWebsocketClass;
+  end;
 
-TWebhookClass = class
-private
-public
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TWebhookClass;
-end;
+  TWebhookClass = class
+  private
+  public
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TWebhookClass;
+  end;
 
-THashClass = class
-private
-  FApikey: String;
-public
-  property apikey: String read FApikey write FApikey;
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): THashClass;
-end;
+  THashClass = class
+  private
+    FApikey: String;
+  public
+    property apikey: String read FApikey write FApikey;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): THashClass;
+  end;
 
-TInstanceClass = class
-private
-  FInstanceId: String;
-  FInstanceName: String;
-  FStatus: String;
-public
-  property instanceId: String read FInstanceId write FInstanceId;
-  property instanceName: String read FInstanceName write FInstanceName;
-  property status: String read FStatus write FStatus;
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TInstanceClass;
-end;
+  TInstanceClass = class
+  private
+    FInstanceId: String;
+    FInstanceName: String;
+    FStatus: String;
+  public
+    property instanceId: String read FInstanceId write FInstanceId;
+    property instanceName: String read FInstanceName write FInstanceName;
+    property status: String read FStatus write FStatus;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TInstanceClass;
+  end;
 
-TRetCreateInstanceClass = class
-private
-  FHash: THashClass;
-  FInstance: TInstanceClass;
-  FQrcode: TQrcodeClass;
-  FRabbitmq: TRabbitmqClass;
-  FSettings: TSettingsClass;
-  FSqs: TSqsClass;
-  FTypebot: TTypebotClass;
-  FWebhook: TWebhookClass;
-  FWebsocket: TWebsocketClass;
-public
-  property hash: THashClass read FHash write FHash;
-  property instance: TInstanceClass read FInstance write FInstance;
-  property qrcode: TQrcodeClass read FQrcode write FQrcode;
-  property rabbitmq: TRabbitmqClass read FRabbitmq write FRabbitmq;
-  property settings: TSettingsClass read FSettings write FSettings;
-  property sqs: TSqsClass read FSqs write FSqs;
-  property typebot: TTypebotClass read FTypebot write FTypebot;
-  property webhook: TWebhookClass read FWebhook write FWebhook;
-  property websocket: TWebsocketClass read FWebsocket write FWebsocket;
-  constructor Create;
-  destructor Destroy; override;
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TRetCreateInstanceClass;
-end;
+  TRetCreateInstanceClass = class
+  private
+    FHash: THashClass;
+    FInstance: TInstanceClass;
+    FQrcode: TQrcodeClass;
+    FRabbitmq: TRabbitmqClass;
+    FSettings: TSettingsClass;
+    FSqs: TSqsClass;
+    FTypebot: TTypebotClass;
+    FWebhook: TWebhookClass;
+    FWebsocket: TWebsocketClass;
+  public
+    property hash: THashClass read FHash write FHash;
+    property instance: TInstanceClass read FInstance write FInstance;
+    property qrcode: TQrcodeClass read FQrcode write FQrcode;
+    property rabbitmq: TRabbitmqClass read FRabbitmq write FRabbitmq;
+    property settings: TSettingsClass read FSettings write FSettings;
+    property sqs: TSqsClass read FSqs write FSqs;
+    property typebot: TTypebotClass read FTypebot write FTypebot;
+    property webhook: TWebhookClass read FWebhook write FWebhook;
+    property websocket: TWebsocketClass read FWebsocket write FWebsocket;
+    constructor Create;
+    destructor Destroy; override;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TRetCreateInstanceClass;
+  end;
 
-TExtendedTextMessageClass = class
-private
-  FText: String;
-public
-  property text: String read FText write FText;
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TExtendedTextMessageClass;
-end;
+  TExtendedTextMessageClass = class
+  private
+    FText: String;
+  public
+    property text: String read FText write FText;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TExtendedTextMessageClass;
+  end;
 
-TMessageClass = class
-private
-  FExtendedTextMessage: TExtendedTextMessageClass;
-public
-  property extendedTextMessage: TExtendedTextMessageClass read FExtendedTextMessage write FExtendedTextMessage;
-  constructor Create;
-  destructor Destroy; override;
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TMessageClass;
-end;
+  TMessageClass = class
+  private
+    FExtendedTextMessage: TExtendedTextMessageClass;
+  public
+    property extendedTextMessage: TExtendedTextMessageClass read FExtendedTextMessage write FExtendedTextMessage;
+    constructor Create;
+    destructor Destroy; override;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TMessageClass;
+  end;
 
-TKeyClass = class
-private
-  FFromMe: Boolean;
-  FId: String;
-  FRemoteJid: String;
-public
-  property fromMe: Boolean read FFromMe write FFromMe;
-  property id: String read FId write FId;
-  property remoteJid: String read FRemoteJid write FRemoteJid;
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TKeyClass;
-end;
+  TKeyClass = class
+  private
+    FFromMe: Boolean;
+    FId: String;
+    FRemoteJid: String;
+  public
+    property fromMe: Boolean read FFromMe write FFromMe;
+    property id: String read FId write FId;
+    property remoteJid: String read FRemoteJid write FRemoteJid;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TKeyClass;
+  end;
 
-TRetEnvMenssageClass = class
-private
-  FKey: TKeyClass;
-  FMessage: TMessageClass;
-  FMessageTimestamp: String;
-  FStatus: String;
-public
-  property key: TKeyClass read FKey write FKey;
-  property message: TMessageClass read FMessage write FMessage;
-  property messageTimestamp: String read FMessageTimestamp write FMessageTimestamp;
-  property status: String read FStatus write FStatus;
-  constructor Create;
-  destructor Destroy; override;
-  function ToJsonString: string;
-  class function FromJsonString(AJsonString: string): TRetEnvMenssageClass;
-end;
+  TDisappearingModeClass = class
+  private
+    FInitiatedByMe: Boolean;
+    FInitiator: String;
+    FTrigger: String;
+  public
+    property initiatedByMe: Boolean read FInitiatedByMe write FInitiatedByMe;
+    property initiator: String read FInitiator write FInitiator;
+    property trigger: String read FTrigger write FTrigger;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TDisappearingModeClass;
+  end;
+
+  TContextInfoClass = class
+  private
+    FDisappearingMode: TDisappearingModeClass;
+    FEphemeralSettingTimestamp: String;
+    FExpiration: Extended;
+  public
+    property disappearingMode: TDisappearingModeClass read FDisappearingMode write FDisappearingMode;
+    property ephemeralSettingTimestamp: String read FEphemeralSettingTimestamp write FEphemeralSettingTimestamp;
+    property expiration: Extended read FExpiration write FExpiration;
+    //constructor Create;
+    //destructor Destroy; override;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TContextInfoClass;
+  end;
+
+  TDataClass = class
+  private
+    FKey: TKeyClass;
+    FMessage: TMessageClass;
+    FMessageTimestamp: Int64;
+    FMessageType: String;
+    FOwner: String;
+    FPushName: String;
+    FSource: String;
+    FremoteJid: String;
+    FfromMe: String;
+    Fid: String;
+    FchatId: String;
+    Fdate: String;
+    Foffline: Boolean;
+    Fstatus: String;
+    FisVideo: Boolean;
+    FisGroup: Boolean;
+    Fdatetime: Int64;
+    FContextInfo: TContextInfoClass;
+  public
+    property key: TKeyClass read FKey write FKey;
+    property message: TMessageClass read FMessage write FMessage;
+    property messageTimestamp: Int64 read FMessageTimestamp write FMessageTimestamp;
+    property messageType: String read FMessageType write FMessageType;
+    property owner: String read FOwner write FOwner;
+    property pushName: String read FPushName write FPushName;
+    property source: String read FSource write FSource;
+    property remoteJid: String read FremoteJid write FremoteJid;
+    property fromMe: String read FfromMe write FfromMe;
+    property id: String read Fid write Fid;
+    property chatId: String read FchatId write FchatId;
+    property date: String read Fdate write Fdate;
+    property status: String read Fstatus write Fstatus;
+    property offline: Boolean read Foffline write Foffline;
+    property isVideo: Boolean read FisVideo write FisVideo;
+    property isGroup: Boolean read FisGroup write FisGroup;
+    property datetime: Int64 read Fdatetime write Fdatetime;
+    property contextInfo: TContextInfoClass read FContextInfo write FContextInfo;
+
+    //constructor Create;
+    //destructor Destroy; override;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TDataClass;
+  end;
+
+  TRetEnvMenssageClass = class
+  private
+    FKey: TKeyClass;
+    FMessage: TMessageClass;
+    //FMessageTimestamp: String;
+    FStatus: String;
+  public
+    property key: TKeyClass read FKey write FKey;
+    property message: TMessageClass read FMessage write FMessage;
+    //property messageTimestamp: String read FMessageTimestamp write FMessageTimestamp;
+    property status: String read FStatus write FStatus;
+    constructor Create;
+    destructor Destroy; override;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TRetEnvMenssageClass;
+  end;
+
+
+
+  TExtendedTextMessage2Class = class
+  private
+    FText: String;
+  public
+    property text: String read FText write FText;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TExtendedTextMessageClass;
+  end;
+
+  TMessage2Class = class
+  private
+    FExtendedTextMessage: TExtendedTextMessage2Class;
+  public
+    property extendedTextMessage: TExtendedTextMessage2Class read FExtendedTextMessage write FExtendedTextMessage;
+    //constructor Create;
+    //destructor Destroy; override;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TMessageClass;
+  end;
+
+  TKey2Class = class
+  private
+    FFromMe: Boolean;
+    FId: String;
+    FRemoteJid: String;
+  public
+    property fromMe: Boolean read FFromMe write FFromMe;
+    property id: String read FId write FId;
+    property remoteJid: String read FRemoteJid write FRemoteJid;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TKeyClass;
+  end;
+
+  TRetSendMessageClass = class
+  private
+    FKey: TKey2Class;
+    FMessage: TMessage2Class;
+    //FMessageTimestamp: String;
+    FStatus: String;
+  public
+    property key: TKey2Class read FKey write FKey;
+    property message: TMessage2Class read FMessage write FMessage;
+    //property messageTimestamp: String read FMessageTimestamp write FMessageTimestamp;
+    property status: String read FStatus write FStatus;
+    constructor Create;
+    destructor Destroy; override;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TRetSendMessageClass;
+  end;
 
 
 
@@ -499,6 +625,29 @@ begin
 end;
 
 function TfetchProfilePictureUrlClass.ToJsonString: string;
+begin
+  result := TJson.ObjectToJsonString(self);
+end;
+
+{ TRetSendMessageClass }
+
+constructor TRetSendMessageClass.Create;
+begin
+
+end;
+
+destructor TRetSendMessageClass.Destroy;
+begin
+
+  inherited;
+end;
+
+class function TRetSendMessageClass.FromJsonString(AJsonString: string): TRetSendMessageClass;
+begin
+  result := TJson.JsonToObject<TRetSendMessageClass>(AJsonString);
+end;
+
+function TRetSendMessageClass.ToJsonString: string;
 begin
   result := TJson.ObjectToJsonString(self);
 end;

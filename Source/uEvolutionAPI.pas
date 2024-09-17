@@ -35,6 +35,7 @@ type
   TResponseConnectionUpdateEvent = Procedure(Sender : TObject; Response: string) of object;
   TResponseCallEvent = Procedure(Sender : TObject; Response: string) of object;
   TResponseSEND_MESSAGEEvent = Procedure(Sender : TObject; Response: string) of object;
+  TResponseCheckNumberExistsEvent = Procedure(Sender : TObject; Response: string) of object;
   TResponseMESSAGES_SETEvent = Procedure(Sender : TObject; Response: string) of object;
 
   TResponseCONTACTS_SETEvent = Procedure(Sender : TObject; Response: string) of object;
@@ -76,6 +77,7 @@ type
     FOnResponseConnectionUpdate: TResponseConnectionUpdateEvent;
     FOnResponseCallUpdate: TResponseCallEvent;
 
+    FOnResponseCheckNumberExists: TResponseCheckNumberExistsEvent;
     FOnResponseSEND_MESSAGE: TResponseSEND_MESSAGEEvent;
     FOnResponseMESSAGES_SET: TResponseMESSAGES_SETEvent;
     FOnResponseCONTACTS_SET: TResponseCONTACTS_SETEvent;
@@ -100,27 +102,31 @@ type
     wpu_url: string;
     Fversion2latest: Boolean;
 
+
     function CaractersWeb(vText: string): string;
+
 
   protected
 
 
   public
     //Send Individual
-    function SendText(waid, body: string; previewurl: string = 'false'): string;
-    function SendFile(waid, body, typeFile, url: string; const filename: string = ''): string;
-    function SendFileBase64(waid, body, typeFile, Base64: string; const filename: string = ''): string;
+    function SendText(waid, body: string; previewurl: string = 'false'; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
+    function SendFile(waid, body, typeFile, url: string; const filename: string = ''; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = '' ): string;
+    function SendFileBase64(waid, body, typeFile, Base64: string; const filename: string = ''; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = '' ): string;
     function SendNarratedAudio(waid, url: string): string;
     function SendNarratedAudioBase64(waid, Base64: string): string;
     function SendSticker(waid, url: string): string;
     function SendStickerBase64(waid, Base64: string): string;
+    function SendContact(waid, phoneNumber, formatted_name, options: string): string;
+    function SendLocation(waid, body, Location, latitude, longitude, address, name: string): string;
+    function SendReaction(waid, message_id, emoji, fromMe: string): string;
+    function SendPoll(waid, pollMessage: string; name: string = ''; selectableCount: Integer = 1): string;
+
+    //Deprecated v2.0
     function SendButton(waid, body, actions, header, footer: string): string; deprecated;
     function SendListMenu(waid, body, sections, header, footer, Button_Text: string): string;
-    function SendContact(waid, phoneNumber, formatted_name, options: string): string;
-    function SendLocation(waid, body, Location, header, footer: string): string;
-    function SendReaction(waid, message_id, emoji, fromMe: string): string;
     function SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string = 'false'): string;
-    function SendPoll(waid, pollMessage: string): string;
     function SendGhostMetionText(groupJid, body: string; previewurl: string = 'false'): string;
 
     //Send Status
@@ -219,6 +225,7 @@ type
     property OnResponseCallUpdate       : TResponseCallEvent              read FOnResponseCallUpdate        write FOnResponseCallUpdate;
 
     property OnResponseSEND_MESSAGE     : TResponseSEND_MESSAGEEvent      read FOnResponseSEND_MESSAGE      write FOnResponseSEND_MESSAGE;
+    property OnResponseCheckNumberExists: TResponseCheckNumberExistsEvent read FOnResponseCheckNumberExists write FOnResponseCheckNumberExists;
     property OnResponseMESSAGES_SET     : TResponseMESSAGES_SETEvent      read FOnResponseMESSAGES_SET      write FOnResponseMESSAGES_SET;
     property OnResponseCONTACTS_SET     : TResponseCONTACTS_SETEvent      read FOnResponseCONTACTS_SET      write FOnResponseCONTACTS_SET;
     property OnResponseCONTACTS_UPSERT  : TResponseCONTACTS_UPSERTEvent   read FOnResponseCONTACTS_UPSERT   write FOnResponseCONTACTS_UPSERT;
@@ -436,8 +443,8 @@ begin
     end;
 
     try
-      if Assigned(FOnRetSendMessage) then
-        FOnRetSendMessage(Self, Response);
+      if Assigned(FOnResponseCheckNumberExists) then
+        FOnResponseCheckNumberExists(Self, Response);
 
       //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
       //Result := RetEnvMensagem.key.id;
@@ -1815,37 +1822,57 @@ begin
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
-    json :=
-      '{ ' +
-      '    "number": "' + waid + '", ' +
-      '    "options": { ' +
-      '        "delay": 1200, ' +
-      '        "presence": "composing" ' +
-      '    }, ' +
-      '    "contactMessage": [ ' +
-      '        { ' +
-      '            "fullName": "' + formatted_name + '", ' +
-      '            "wuid": "' + phoneNumber + '", ' +
-      '            "phoneNumber": "' + phoneNumber + '" ' +
-      //'            "organization": "Company Name", /* Optional */ ' +
-      //'            "email": "email", /* Optional */ ' +
-      //'            "url": "url page" /* Optional */ ' +
-      '        } ' +
-      '    ] ' +
-      '} ';
+    if version2latest then
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "contact": [ ' +
+        '        { ' +
+        '            "fullName": "' + formatted_name + '", ' +
+        '            "wuid": "' + phoneNumber + '", ' +
+        '            "phoneNumber": "' + phoneNumber + '" ' +
+        //'            "organization": "Company Name", /* Optional */ ' +
+        //'            "email": "email", /* Optional */ ' +
+        //'            "url": "url page" /* Optional */ ' +
+        '        } ' +
+        '    ] ' +
+        '} ';
+    end
+    else
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "options": { ' +
+        '        "delay": 1200, ' +
+        '        "presence": "composing" ' +
+        '    }, ' +
+        '    "contactMessage": [ ' +
+        '        { ' +
+        '            "fullName": "' + formatted_name + '", ' +
+        '            "wuid": "' + phoneNumber + '", ' +
+        '            "phoneNumber": "' + phoneNumber + '" ' +
+        //'            "organization": "Company Name", /* Optional */ ' +
+        //'            "email": "email", /* Optional */ ' +
+        //'            "url": "url page" /* Optional */ ' +
+        '        } ' +
+        '    ] ' +
+        '} ';
 
-      (*
-      '        }, ' +
-      '        { ' +
-      '            "fullName": "Contact Name", ' +
-      '            "wuid": "559911111111", ' +
-      '            "phoneNumber": "+55 99 9 1111-1111", ' +
-      '            "organization": "Company Name", /* Optional */ ' +
-      '            "email": "email", /* Optional */ ' +
-      '            "url": "url page" /* Optional */ ' +
-      '        } ' +
-      '    ] ' +
-      '} ';*)
+        (*
+        '        }, ' +
+        '        { ' +
+        '            "fullName": "Contact Name", ' +
+        '            "wuid": "559911111111", ' +
+        '            "phoneNumber": "+55 99 9 1111-1111", ' +
+        '            "organization": "Company Name", /* Optional */ ' +
+        '            "email": "email", /* Optional */ ' +
+        '            "url": "url page" /* Optional */ ' +
+        '        } ' +
+        '    ] ' +
+        '} ';*)
+    end;
 
     UTF8Texto := UTF8Encode(json);
     try
@@ -1893,7 +1920,7 @@ begin
 
 end;
 
-function TEvolutionAPI.SendFile(waid, body, typeFile, url: string; const filename: string = ''): string;
+function TEvolutionAPI.SendFile(waid, body, typeFile, url: string; const filename: string = ''; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
 var
   response: string;
   json: string;
@@ -1907,20 +1934,35 @@ begin
 
     body := CaractersWeb(body);
 
-    json :=
-      '{ ' +
-      '    "number": "' + waid + '", ' +
-      '    "options": { ' +
-      '        "delay": 1200, ' +
-      '        "presence": "composing" ' +
-      '    }, ' +
-      '    "mediaMessage": { ' +
-      '        "mediatype": "' + typeFile + '" ' +
-      IfThen( Trim(fileName) <> '' ,'        ,"fileName": "' + filename + '"  ', '') +
-      IfThen( Trim(body) <> '' ,'        ,"caption": "' + body + '"  ', '') +
-      '        ,"media": "' + url + '" ' +
-      '    } ' +
-      '} ';
+    if version2latest then
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "mediatype": "' + typeFile + '" ' +
+        //'    "mimetype": "' + typeFile + '" ' +
+        IfThen( Trim(fileName) <> '' ,'        ,"fileName": "' + filename + '"  ', '') +
+        IfThen( Trim(body) <> '' ,'        ,"caption": "' + body + '"  ', '') +
+        '    ,"media": "' + url + '" ' +
+        '} ';
+    end
+    else
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "options": { ' +
+        '        "delay": 1200, ' +
+        '        "presence": "composing" ' +
+        '    }, ' +
+        '    "mediaMessage": { ' +
+        '        "mediatype": "' + typeFile + '" ' +
+        IfThen( Trim(fileName) <> '' ,'        ,"fileName": "' + filename + '"  ', '') +
+        IfThen( Trim(body) <> '' ,'        ,"caption": "' + body + '"  ', '') +
+        '        ,"media": "' + url + '" ' +
+        '    } ' +
+        '} ';
+    end;
 
     UTF8Texto := UTF8Encode(json);
     try
@@ -1970,7 +2012,7 @@ begin
 
 end;
 
-function TEvolutionAPI.SendFileBase64(waid, body, typeFile, Base64: string; const filename: string): string;
+function TEvolutionAPI.SendFileBase64(waid, body, typeFile, Base64: string; const filename: string = ''; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
 var
   response: string;
   json: string;
@@ -1995,20 +2037,35 @@ begin
 
     body := CaractersWeb(body);
 
-    json :=
-      '{ ' +
-      '    "number": "' + waid + '", ' +
-      '    "options": { ' +
-      '        "delay": 1200, ' +
-      '        "presence": "composing" ' +
-      '    }, ' +
-      '    "mediaMessage": { ' +
-      '        "mediatype": "' + typeFile + '", ' +
-      IfThen( Trim(fileName) <> '' ,'        "fileName": "' + filename + '",  ', '') +
-      IfThen( Trim(body) <> '' ,'        "caption": "' + body + '",  ', '') +
-      '        "media": "' + Base64 + '" ' +
-      '    } ' +
-      '} ';
+    if version2latest then
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "mediatype": "' + typeFile + '" ' +
+        //'    "mimetype": "' + typeFile + '" ' +
+        IfThen( Trim(fileName) <> '' ,'        ,"fileName": "' + filename + '"  ', '') +
+        IfThen( Trim(body) <> '' ,'        ,"caption": "' + body + '"  ', '') +
+        '    ,"media": "' + Base64 + '" ' +
+        '} ';
+    end
+    else
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "options": { ' +
+        '        "delay": 1200, ' +
+        '        "presence": "composing" ' +
+        '    }, ' +
+        '    "mediaMessage": { ' +
+        '        "mediatype": "' + typeFile + '", ' +
+        IfThen( Trim(fileName) <> '' ,'        "fileName": "' + filename + '",  ', '') +
+        IfThen( Trim(body) <> '' ,'        "caption": "' + body + '",  ', '') +
+        '        "media": "' + Base64 + '" ' +
+        '    } ' +
+        '} ';
+    end;
 
     UTF8Texto := UTF8Encode(json);
 
@@ -2279,7 +2336,7 @@ begin
 
 end;
 
-function TEvolutionAPI.SendLocation(waid, body, Location, header, footer: string): string;
+function TEvolutionAPI.SendLocation(waid, body, Location, latitude, longitude, address, name: string): string;
 var
   response: string;
   json: string;
@@ -2293,33 +2350,37 @@ begin
       waid := DDIDefault.ToString + waid;
 
     body := CaractersWeb(body);
+    if version2latest then
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "latitude": ' + latitude + ', ' +
+        '    "longitude": ' + longitude + ', ' +
+        '    "address": "' + address + '", ' +
+        '    "name": "' + name + '" ' +
+        '} ';
+    end
+    else
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "options": { ' +
+        '        "delay": 1200, ' +
+        '        "presence": "composing" ' +
+        '    }, ' +
+        Location +
 
-    (*json :=
-      '{ ' +
-      '  "messaging_product": "whatsapp", ' +
-      //'  "recipient_type": "individual", ' +
-      '  "to": "' + waid + '", ' +
-      '  "type": "location", ' +
-      Location +
-      '}';*)
+        (*'    "locationMessage": { ' +
+        '        "name": "Bora Bora", ' +
+        '        "address": "French Polynesian", ' +
+        '        "latitude": -16.505538233564373, ' +
+        '        "longitude": -151.7422770494996 ' +
+        '    } ' +*)
 
-    json :=
-      '{ ' +
-      '    "number": "' + waid + '", ' +
-      '    "options": { ' +
-      '        "delay": 1200, ' +
-      '        "presence": "composing" ' +
-      '    }, ' +
-      Location +
-
-      (*'    "locationMessage": { ' +
-      '        "name": "Bora Bora", ' +
-      '        "address": "French Polynesian", ' +
-      '        "latitude": -16.505538233564373, ' +
-      '        "longitude": -151.7422770494996 ' +
-      '    } ' +*)
-
-      '} ';
+        '} ';
+    end;
 
     UTF8Texto := UTF8Encode(json);
 
@@ -2378,18 +2439,32 @@ begin
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
-    json :=
-      '{ ' +
-      '    "number": "' + waid + '", ' +
-      '    "options": { ' +
-      '        "delay": 1200, ' +
-      '        "presence": "recording", ' +
-      '        "encoding": true ' +
-      '    }, ' +
-      '    "audioMessage": { ' +
-      '        "audio": "' + url + '" ' +
-      '    } ' +
-      '} ';
+    if version2latest then
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "mediatype": "audio" ' +
+        '    "encoding": true, ' +
+        //'    "mimetype": "' + typeFile + '" ' +
+        '    ,"media": "' + url + '" ' +
+        '} ';
+    end
+    else
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "options": { ' +
+        '        "delay": 1200, ' +
+        '        "presence": "recording", ' +
+        '        "encoding": true ' +
+        '    }, ' +
+        '    "audioMessage": { ' +
+        '        "audio": "' + url + '" ' +
+        '    } ' +
+        '} ';
+    end;
 
     UTF8Texto := UTF8Encode(json);
     try
@@ -2462,18 +2537,32 @@ begin
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
-    json :=
-      '{ ' +
-      '    "number": "' + waid + '", ' +
-      '    "options": { ' +
-      '        "delay": 1200, ' +
-      '        "presence": "recording", ' +
-      '        "encoding": true ' +
-      '    }, ' +
-      '    "audioMessage": { ' +
-      '        "audio": "' + Base64 + '" ' +
-      '    } ' +
-      '} ';
+    if version2latest then
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "mediatype": "audio" ' +
+        '    "encoding": true, ' +
+        //'    "mimetype": "' + typeFile + '" ' +
+        '    ,"media": "' + Base64 + '" ' +
+        '} ';
+    end
+    else
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "options": { ' +
+        '        "delay": 1200, ' +
+        '        "presence": "recording", ' +
+        '        "encoding": true ' +
+        '    }, ' +
+        '    "audioMessage": { ' +
+        '        "audio": "' + Base64 + '" ' +
+        '    } ' +
+        '} ';
+    end;
 
     UTF8Texto := UTF8Encode(json);
     try
@@ -2525,7 +2614,7 @@ begin
 
 end;
 
-function TEvolutionAPI.SendPoll(waid, pollMessage: string): string;
+function TEvolutionAPI.SendPoll(waid, pollMessage: string; name: string; selectableCount: Integer): string;
 var
   response: string;
   json: string;
@@ -2538,16 +2627,30 @@ begin
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
-    json :=
-      '{ ' +
-      '    "number": "' + waid + '", ' +
-      '    "options": { ' +
-      '        "delay": 1200, ' +
-      '        "presence": "composing" ' +
-      '    }, ' +
-      '    "pollMessage":  ' + pollMessage +
-      '    ' +
-      '} ';
+    if version2latest then
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "name": "' + name + '", ' +
+        '    "selectableCount": ' + selectableCount.toString + ', ' +
+        '    "values":  [' + pollMessage + '] ' +
+        '    ' +
+        '} ';
+    end
+    else
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "options": { ' +
+        '        "delay": 1200, ' +
+        '        "presence": "composing" ' +
+        '    }, ' +
+        '    "pollMessage":  ' + pollMessage +
+        '    ' +
+        '} ';
+    end;
 
     UTF8Texto := UTF8Encode(json);
     try
@@ -2614,18 +2717,36 @@ begin
     if Trim(fromMe) = '' then
       fromMe := 'false';
 
-    json :=
-      '{ ' +
-      '  "reactionMessage": { ' +
-      '    "key": { ' +
-      //'      "remoteJid": "' + waid + '@s.whatsapp.net", // or {{groupJid}}@g.us" ' +
-      '      "remoteJid": "' + waid + '", ' +
-      '      "fromMe": ' + fromMe + ', ' +
-      '      "id": "' + message_id + '" ' +
-      '    }, ' +
-      '    "reaction": "' + emoji + '" ' +
-      '  } ' +
-      '} ';
+    if version2latest then
+    begin
+      json :=
+        '{ ' +
+        '  "reactionMessage": { ' +
+        '    "key": { ' +
+        //'      "remoteJid": "' + waid + '@s.whatsapp.net", // or {{groupJid}}@g.us" ' +
+        '      "remoteJid": "' + waid + '", ' +
+        '      "fromMe": ' + fromMe + ', ' +
+        '      "id": "' + message_id + '" ' +
+        '    }, ' +
+        '    "reaction": "' + emoji + '" ' +
+        '  } ' +
+        '} ';
+    end
+    else
+    begin
+      json :=
+        '{ ' +
+        '  "reactionMessage": { ' +
+        '    "key": { ' +
+        //'      "remoteJid": "' + waid + '@s.whatsapp.net", // or {{groupJid}}@g.us" ' +
+        '      "remoteJid": "' + waid + '", ' +
+        '      "fromMe": ' + fromMe + ', ' +
+        '      "id": "' + message_id + '" ' +
+        '    }, ' +
+        '    "reaction": "' + emoji + '" ' +
+        '  } ' +
+        '} ';
+    end;
 
     UTF8Texto := UTF8Encode(json);
     try
@@ -2951,17 +3072,28 @@ begin
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
-    json :=
-      '{ ' +
-      '    "number": "' + waid + '", ' +
-      '    "options": { ' +
-      '        "delay": 1200, ' +
-      '        "presence": "composing" ' +
-      '    }, ' +
-      '    "stickerMessage": { ' +
-      '        "image": "' + url + '" ' +
-      '    } ' +
-      '} ';
+    if version2latest then
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "sticker": "' + url + '" ' +
+        '} ';
+    end
+    else
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "options": { ' +
+        '        "delay": 1200, ' +
+        '        "presence": "composing" ' +
+        '    }, ' +
+        '    "stickerMessage": { ' +
+        '        "image": "' + url + '" ' +
+        '    } ' +
+        '} ';
+    end;
 
     UTF8Texto := UTF8Encode(json);
     try
@@ -3034,17 +3166,28 @@ begin
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
-    json :=
-      '{ ' +
-      '    "number": "' + waid + '", ' +
-      '    "options": { ' +
-      '        "delay": 1200, ' +
-      '        "presence": "composing" ' +
-      '    }, ' +
-      '    "stickerMessage": { ' +
-      '        "image": "' + Base64 + '" ' +
-      '    } ' +
-      '} ';
+    if version2latest then
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "sticker": "' + Base64 + '" ' +
+        '} ';
+    end
+    else
+    begin
+      json :=
+        '{ ' +
+        '    "number": "' + waid + '", ' +
+        '    "options": { ' +
+        '        "delay": 1200, ' +
+        '        "presence": "composing" ' +
+        '    }, ' +
+        '    "stickerMessage": { ' +
+        '        "image": "' + Base64 + '" ' +
+        '    } ' +
+        '} ';
+    end;
 
     UTF8Texto := UTF8Encode(json);
     try
@@ -3094,17 +3237,21 @@ begin
 
 end;
 
-function TEvolutionAPI.SendText(waid, body, previewurl: string): string;
+function TEvolutionAPI.SendText(waid, body: string; previewurl: string = 'false'; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
 var
   response: string;
   json: string;
   RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  RetEnvMensagem2 : uRetMensagem.TRetSendMessageClass;
   UTF8Texto: UTF8String;
 begin
   Result := '';
   try
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
+
+    if pos('@s.whatsapp.net', waid) = 0 then
+      waid := waid + '@s.whatsapp.net';
 
     body := CaractersWeb(body);
 
@@ -3114,8 +3261,8 @@ begin
         '{ ' +
         '    "number": "' + waid + '", ' +
         '    "text": "' + body + '", ' +
-        '    "delay": 500' +
-        //'    "linkPreview": ' + previewurl +  ' ' +
+        '    "delay": 500' + ',' +
+        '    "linkPreview": ' + previewurl +  ' ' +
         '} ';
     end
     else
@@ -3162,9 +3309,16 @@ begin
     try
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
-
-      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
-      Result := RetEnvMensagem.key.id;
+      if version2latest then
+      begin
+        RetEnvMensagem2 := TRetSendMessageClass.FromJsonString(response);
+        Result := RetEnvMensagem2.key.id;
+      end
+      else
+      begin
+        RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+        Result := RetEnvMensagem.key.id;
+      end;
 
       //Result := Response;
     except
@@ -4382,7 +4536,8 @@ begin
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         //.AddBody(UTF8Texto)
-        .Post
+        .Get
+        //.Post
         .Content;
       //gravar_log(response);
     except

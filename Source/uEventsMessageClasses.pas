@@ -452,6 +452,34 @@ type
     class function FromJsonString(AJsonString: string): TKeyClass;
   end;
 
+  TDisappearingModeClass = class
+  private
+    FInitiatedByMe: Boolean;
+    FInitiator: String;
+    FTrigger: String;
+  public
+    property initiatedByMe: Boolean read FInitiatedByMe write FInitiatedByMe;
+    property initiator: String read FInitiator write FInitiator;
+    property trigger: String read FTrigger write FTrigger;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TDisappearingModeClass;
+  end;
+
+  TContextInfoClass = class
+  private
+    FDisappearingMode: TDisappearingModeClass;
+    FEphemeralSettingTimestamp: String;
+    FExpiration: Extended;
+  public
+    property disappearingMode: TDisappearingModeClass read FDisappearingMode write FDisappearingMode;
+    property ephemeralSettingTimestamp: String read FEphemeralSettingTimestamp write FEphemeralSettingTimestamp;
+    property expiration: Extended read FExpiration write FExpiration;
+    //constructor Create;
+    //destructor Destroy; override;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TContextInfoClass;
+  end;
+
   TDataClass = class
   private
     FKey: TKeyClass;
@@ -471,6 +499,7 @@ type
     FisVideo: Boolean;
     FisGroup: Boolean;
     Fdatetime: Int64;
+    FContextInfo: TContextInfoClass;
   public
     property key: TKeyClass read FKey write FKey;
     property message: TMessageClass read FMessage write FMessage;
@@ -489,6 +518,7 @@ type
     property isVideo: Boolean read FisVideo write FisVideo;
     property isGroup: Boolean read FisGroup write FisGroup;
     property datetime: Int64 read Fdatetime write Fdatetime;
+    property contextInfo: TContextInfoClass read FContextInfo write FContextInfo;
 
     constructor Create;
     destructor Destroy; override;
@@ -500,7 +530,7 @@ type
   private
     FApikey: String;
     FData: TDataClass;
-    FDate_time: String;
+    //FDate_time: String;
     FDestination: String;
     FEvent: String;
     FInstance: String;
@@ -509,7 +539,7 @@ type
   public
     property apikey: String read FApikey write FApikey;
     property data: TDataClass read FData write FData;
-    property date_time: String read FDate_time write FDate_time;
+    //property date_time: String read FDate_time write FDate_time;
     property destination: String read FDestination write FDestination;
     property event: String read FEvent write FEvent;
     property instance: String read FInstance write FInstance;

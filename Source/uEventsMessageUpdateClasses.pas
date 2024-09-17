@@ -24,14 +24,25 @@ type
     FRemoteJid: String;
     FStatus: String;
     FPollUpdates: TArray<TPollUpdatesClass>;
+    FmessageId: String;
+    FkeyId: String;
+    Fparticipant: String;
+    FinstanceId: String;
   public
     property datetime: Int64 read FDatetime write FDatetime;
     property fromMe: Boolean read FFromMe write FFromMe;
     property id: String read FId write FId;
+
     property owner: String read FOwner write FOwner;
     property remoteJid: String read FRemoteJid write FRemoteJid;
     property status: String read FStatus write FStatus;
     property pollUpdates: TArray<TPollUpdatesClass> read FPollUpdates write FPollUpdates;
+
+    property messageId: String read FmessageId write FmessageId;
+    property keyId: String read FkeyId write FkeyId;
+    property participant: String read Fparticipant write Fparticipant;
+    property instanceId: String read FinstanceId write FinstanceId;
+
     function ToJsonString: string;
     class function FromJsonString(AJsonString: string): TDataClass;
   end;
@@ -40,7 +51,7 @@ type
   private
     FApikey: String;
     FData: TDataClass;
-    FDate_time: String;
+    //FDate_time: String;
     FDestination: String;
     FEvent: String;
     FInstance: String;
@@ -49,7 +60,7 @@ type
   public
     property apikey: String read FApikey write FApikey;
     property data: TDataClass read FData write FData;
-    property date_time: String read FDate_time write FDate_time;
+    //property date_time: String read FDate_time write FDate_time;
     property destination: String read FDestination write FDestination;
     property event: String read FEvent write FEvent;
     property instance: String read FInstance write FInstance;
