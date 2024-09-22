@@ -17,26 +17,26 @@ type
 
   TDataClass = class
   private
-    FDatetime: Int64;
+    //FDatetime: Int64;
     FFromMe: Boolean;
     FId: String;
     FOwner: String;
     FRemoteJid: String;
     FStatus: String;
-    FPollUpdates: TArray<TPollUpdatesClass>;
+    //FPollUpdates: TArray<TPollUpdatesClass>;
     FmessageId: String;
     FkeyId: String;
     Fparticipant: String;
     FinstanceId: String;
   public
-    property datetime: Int64 read FDatetime write FDatetime;
+    //property datetime: Int64 read FDatetime write FDatetime;
     property fromMe: Boolean read FFromMe write FFromMe;
     property id: String read FId write FId;
 
     property owner: String read FOwner write FOwner;
     property remoteJid: String read FRemoteJid write FRemoteJid;
     property status: String read FStatus write FStatus;
-    property pollUpdates: TArray<TPollUpdatesClass> read FPollUpdates write FPollUpdates;
+    //property pollUpdates: TArray<TPollUpdatesClass> read FPollUpdates write FPollUpdates;
 
     property messageId: String read FmessageId write FmessageId;
     property keyId: String read FkeyId write FkeyId;
@@ -92,12 +92,12 @@ end;
 constructor TResultEventMessageUpdateClass.Create;
 begin
   inherited;
-  FData := TDataClass.Create();
+  //FData := TDataClass.Create();
 end;
 
 destructor TResultEventMessageUpdateClass.Destroy;
 begin
-  FData.free;
+  //FData.free;
   inherited;
 end;
 

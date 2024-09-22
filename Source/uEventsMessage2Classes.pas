@@ -49,27 +49,10 @@ type
     FDisappearingMode: TDisappearingModeClass;
     //FEphemeralSettingTimestamp: String;
     FExpiration: Extended;
-    FDeviceListMetadata: TDeviceListMetadataClass;
-    FDeviceListMetadataVersion: Extended;
-    Fparticipant: string;
-    FstanzaId: string;
-    Fbase64: string;
-    FQuotedMessage: TQuotedMessageClass;
-
-
-
   public
     property disappearingMode: TDisappearingModeClass read FDisappearingMode write FDisappearingMode;
     //property ephemeralSettingTimestamp: String read FEphemeralSettingTimestamp write FEphemeralSettingTimestamp;
     property expiration: Extended read FExpiration write FExpiration;
-
-    property deviceListMetadata: TDeviceListMetadataClass read FDeviceListMetadata write FDeviceListMetadata;
-    property deviceListMetadataVersion: Extended read FDeviceListMetadataVersion write FDeviceListMetadataVersion;
-    property base64: string read Fbase64 write Fbase64;
-    property stanzaId: string read FstanzaId write FstanzaId;
-    property participant: string read Fparticipant write Fparticipant;
-    property quotedMessage: TQuotedMessageClass read FQuotedMessage write FQuotedMessage;
-
     //constructor Create;
     //destructor Destroy; override;
     //function ToJsonString: string;

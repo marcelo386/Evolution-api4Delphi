@@ -1656,6 +1656,9 @@ begin
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
+    if pos('@s.whatsapp.net', waid) = 0 then
+      waid := waid + '@s.whatsapp.net';
+
     if Trim(fromMe) = '' then
       fromMe := 'false';
 
@@ -1815,6 +1818,7 @@ var
   response: string;
   json: string;
   RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  RetEnvMensagem2 : uRetMensagem.TRetSendMessageClass;
   UTF8Texto: UTF8String;
 begin
   Result := '';
@@ -1905,8 +1909,18 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
-      Result := RetEnvMensagem.key.id;
+
+      if version2latest then
+      begin
+        RetEnvMensagem2 := TRetSendMessageClass.FromJsonString(response);
+        Result := RetEnvMensagem2.key.id;
+      end
+      else
+      begin
+        RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+        Result := RetEnvMensagem.key.id;
+      end;
+
     except
       on E: Exception do
       begin
@@ -3309,6 +3323,7 @@ begin
     try
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
+
       if version2latest then
       begin
         RetEnvMensagem2 := TRetSendMessageClass.FromJsonString(response);
