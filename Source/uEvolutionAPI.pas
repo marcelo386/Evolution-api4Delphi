@@ -114,12 +114,12 @@ type
     function SendText(waid, body: string; previewurl: string = 'false'; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
     function SendFile(waid, body, typeFile, url: string; const filename: string = ''; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = '' ): string;
     function SendFileBase64(waid, body, typeFile, Base64: string; const filename: string = ''; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = '' ): string;
-    function SendNarratedAudio(waid, url: string): string;
-    function SendNarratedAudioBase64(waid, Base64: string): string;
-    function SendSticker(waid, url: string): string;
-    function SendStickerBase64(waid, Base64: string): string;
+    function SendNarratedAudio(waid, url: string; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
+    function SendNarratedAudioBase64(waid, Base64: string; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
+    function SendSticker(waid, url: string; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
+    function SendStickerBase64(waid, Base64: string; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
     function SendContact(waid, phoneNumber, formatted_name, options: string): string;
-    function SendLocation(waid, body, Location, latitude, longitude, address, name: string): string;
+    function SendLocation(waid, body, Location, latitude, longitude, address, name: string; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
     function SendReaction(waid, message_id, emoji, fromMe: string): string;
     function SendPoll(waid, pollMessage: string; name: string = ''; selectableCount: Integer = 1): string;
 
@@ -1656,7 +1656,7 @@ begin
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
-    if pos('@s.whatsapp.net', waid) = 0 then
+    if (pos('@s.whatsapp.net', waid) = 0) and (pos('@g.us', waid) = 0) then
       waid := waid + '@s.whatsapp.net';
 
     if Trim(fromMe) = '' then
@@ -1946,6 +1946,9 @@ begin
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
+    if (pos('@s.whatsapp.net', waid) = 0) and (pos('@g.us', waid) = 0) then
+      waid := waid + '@s.whatsapp.net';
+
     body := CaractersWeb(body);
 
     if version2latest then
@@ -1958,6 +1961,7 @@ begin
         IfThen( Trim(fileName) <> '' ,'        ,"fileName": "' + filename + '"  ', '') +
         IfThen( Trim(body) <> '' ,'        ,"caption": "' + body + '"  ', '') +
         '    ,"media": "' + url + '" ' +
+        IfThen( Trim(quoted) <> '' ,'  ,"quoted": ' + quoted + '  ', '') +
         '} ';
     end
     else
@@ -2039,6 +2043,12 @@ begin
   Result := '';
   LLine := '';
 
+  if (length(waid) = 11) or (length(waid) = 10) then
+    waid := DDIDefault.ToString + waid;
+
+  if (pos('@s.whatsapp.net', waid) = 0) and (pos('@g.us', waid) = 0) then
+    waid := waid + '@s.whatsapp.net';
+
   LBase64 := TStringList.Create;
   try
     LBase64.Text := Base64;
@@ -2061,6 +2071,7 @@ begin
         IfThen( Trim(fileName) <> '' ,'        ,"fileName": "' + filename + '"  ', '') +
         IfThen( Trim(body) <> '' ,'        ,"caption": "' + body + '"  ', '') +
         '    ,"media": "' + Base64 + '" ' +
+        IfThen( Trim(quoted) <> '' ,'  ,"quoted": ' + quoted + '  ', '') +
         '} ';
     end
     else
@@ -2350,7 +2361,7 @@ begin
 
 end;
 
-function TEvolutionAPI.SendLocation(waid, body, Location, latitude, longitude, address, name: string): string;
+function TEvolutionAPI.SendLocation(waid, body, Location, latitude, longitude, address, name: string; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
 var
   response: string;
   json: string;
@@ -2373,6 +2384,7 @@ begin
         '    "longitude": ' + longitude + ', ' +
         '    "address": "' + address + '", ' +
         '    "name": "' + name + '" ' +
+        IfThen( Trim(quoted) <> '' ,'  ,"quoted": ' + quoted + '  ', '') +
         '} ';
     end
     else
@@ -2440,7 +2452,7 @@ begin
 
 end;
 
-function TEvolutionAPI.SendNarratedAudio(waid, url: string): string;
+function TEvolutionAPI.SendNarratedAudio(waid, url: string; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
 var
   response: string;
   json: string;
@@ -2462,6 +2474,7 @@ begin
         '    "encoding": true, ' +
         //'    "mimetype": "' + typeFile + '" ' +
         '    ,"media": "' + url + '" ' +
+        IfThen( Trim(quoted) <> '' ,'  ,"quoted": ' + quoted + '  ', '') +
         '} ';
     end
     else
@@ -2528,7 +2541,7 @@ begin
 
 end;
 
-function TEvolutionAPI.SendNarratedAudioBase64(waid, Base64: string): string;
+function TEvolutionAPI.SendNarratedAudioBase64(waid, Base64: string; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
 var
   response: string;
   json: string;
@@ -2560,6 +2573,7 @@ begin
         '    "encoding": true, ' +
         //'    "mimetype": "' + typeFile + '" ' +
         '    ,"media": "' + Base64 + '" ' +
+        IfThen( Trim(quoted) <> '' ,'  ,"quoted": ' + quoted + '  ', '') +
         '} ';
     end
     else
@@ -3073,7 +3087,7 @@ begin
 
 end;
 
-function TEvolutionAPI.SendSticker(waid, url: string): string;
+function TEvolutionAPI.SendSticker(waid, url: string; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
 var
   response: string;
   json: string;
@@ -3092,6 +3106,7 @@ begin
         '{ ' +
         '    "number": "' + waid + '", ' +
         '    "sticker": "' + url + '" ' +
+        IfThen( Trim(quoted) <> '' ,'  ,"quoted": ' + quoted + '  ', '') +
         '} ';
     end
     else
@@ -3158,7 +3173,7 @@ begin
 
 end;
 
-function TEvolutionAPI.SendStickerBase64(waid, Base64: string): string;
+function TEvolutionAPI.SendStickerBase64(waid, Base64: string; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
 var
   response: string;
   json: string;
@@ -3186,6 +3201,7 @@ begin
         '{ ' +
         '    "number": "' + waid + '", ' +
         '    "sticker": "' + Base64 + '" ' +
+        IfThen( Trim(quoted) <> '' ,'  ,"quoted": ' + quoted + '  ', '') +
         '} ';
     end
     else
@@ -3264,7 +3280,7 @@ begin
     if (length(waid) = 11) or (length(waid) = 10) then
       waid := DDIDefault.ToString + waid;
 
-    if pos('@s.whatsapp.net', waid) = 0 then
+    if (pos('@s.whatsapp.net', waid) = 0) and (pos('@g.us', waid) = 0) then
       waid := waid + '@s.whatsapp.net';
 
     body := CaractersWeb(body);
@@ -3277,7 +3293,20 @@ begin
         '    "text": "' + body + '", ' +
         '    "delay": 500' + ',' +
         '    "linkPreview": ' + previewurl +  ' ' +
+        IfThen( Trim(quoted) <> '' ,'  ,"quoted": ' + quoted + '  ', '') +
         '} ';
+
+(*
+       "quoted": {
+          "key": {
+            "remoteJid": "<string>",
+            "fromMe": true,
+            "id": "<string>",
+            "participant": "<string>"
+          },
+      }
+*)
+
     end
     else
     begin
