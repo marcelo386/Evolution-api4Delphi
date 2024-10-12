@@ -122,6 +122,8 @@ type
     TimerInicio: TTimer;
     Button1: TButton;
     BitBtn5: TBitBtn;
+    chkVersion2Latest: TCheckBox;
+    Button3: TButton;
     procedure btnTextoSimplesClick(Sender: TObject);
     procedure btnBotaoSimplesClick(Sender: TObject);
     procedure btnListaMenuClick(Sender: TObject);
@@ -175,6 +177,7 @@ type
     procedure btnLocalizacaoBotaoClick(Sender: TObject);
     procedure BitBtn5Click(Sender: TObject);
     procedure btnDownloadMediaClick(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
 
   private
     procedure CarregarImagemBase64(const Base64Str: string; const Image: TImage);
@@ -201,7 +204,7 @@ implementation
 
 {$R *.dfm}
 
-uses uRetMensagem, uFetchInstancesClass, uConnectionUpdateClass, uQrcodeUpdateClass, uDownloadMediaClass;
+uses uRetMensagem, uFetchInstancesClass, uConnectionUpdateClass, uQrcodeUpdateClass, uDownloadMediaClass, uFetchInstancesClass2;
 
 const
   AutoFileType = 7; // Default define automaticamente o tipo de arquivo
@@ -488,6 +491,7 @@ procedure TfrmPrincipal.bFetchInstancesClick(Sender: TObject);
 var
   I : Integer;
   Result: uFetchInstancesClass.TRootClass;
+  ResultEvo2: uFetchInstancesClass2.TResultClass;
 begin
   if Trim(edtUrlServerEvolutionAPI.Text) = '' then
   begin
@@ -517,6 +521,8 @@ begin
   EvolutionAPI1.Token := edtTokenAPIGeral.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
   EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
+  EvolutionAPI1.version2latest := chkVersion2Latest.Checked;
+
   sResponse := EvolutionAPI1.fetchInstances;
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
@@ -524,18 +530,26 @@ begin
   memResponse.Lines.Add(sResponse + #13#10);
   gravar_log(sResponse + #13#10);
 
-
   try
     //sResponse := Copy(sResponse,2,length(sResponse));
     //sResponse := Copy(sResponse,1,length(sResponse)-1);
     sResponse := '{"FetchInstances":' +  sResponse + '}';
     memResponse.Lines.Add(sResponse + #13#10);
 
-    Result := uFetchInstancesClass.TRootClass.FromJsonString(sResponse);
+    if chkVersion2Latest.Checked then
+    begin
+      ResultEvo2 := uFetchInstancesClass2.TResultClass.FromJsonString(sResponse);
+      sResponse := ResultEvo2.ToJsonString;
+    end
+    else
+    begin
+      Result := uFetchInstancesClass.TRootClass.FromJsonString(sResponse);
+      sResponse := Result.ToJsonString;
+    end;
 
     //Result := uFetchInstancesClass.TResultClass.FromJsonString('{"FetchInstances":' +  sResponse + '}');
 
-    sResponse := Result.ToJsonString;
+
     sResponse := StringReplace(sResponse, '{"fetchinstances":', '', [rfReplaceAll, rfIgnoreCase]);
     sResponse := Copy(sResponse,1, length(sResponse)-1);
     sResponse := Trim(sResponse);
@@ -543,7 +557,10 @@ begin
 
     memResponse.Lines.Add(sResponse);
 
-    JsonToDataset(FDMemTable1, sResponse, 'Instance');
+    if chkVersion2Latest.Checked then
+      JsonToDataset(FDMemTable1, sResponse, '')
+    else
+      JsonToDataset(FDMemTable1, sResponse, 'Instance');
 
 
     For I := 0 to FDMemTable1.FieldCount - 1 do
@@ -555,52 +572,104 @@ begin
 
   lblNumeroConectado.Caption := '';
 
+
   if FDMemTable1.Active then
     if FDMemTable1.RecordCount > 0 then
     begin
-      if FDMemTable1.Locate('instance.instanceName', edtInstanceName.Text, []) then
+      if chkVersion2Latest.Checked then
       begin
-        try
-          lblNumeroConectado.Caption := FDMemTable1.FieldByName('instance.owner').AsString;
-          lblNumeroConectado.Caption := Copy(lblNumeroConectado.Caption,1, pos('@', lblNumeroConectado.Caption) -1);
-          gravar_log('Número Conectado: ' + lblNumeroConectado.Caption);
-        except on E: Exception do
-          lblNumeroConectado.Caption := '';
-        end;
-
-        StatusBar1.Panels[0].Text := lblNumeroConectado.Caption;
-
-        try
-          StatusBar1.Panels[4].Text := FDMemTable1.FieldByName('instance.profileName').AsString;
-        except on E: Exception do
-        end;
-
-
-        try
-          if (FDMemTable1.FieldByName('instance.owner').AsString <> '') and (FDMemTable1.FieldByName('instance.status').AsString = 'open')  then //status
-          begin
-            whatsOn.Visible := True;
-            whatsOff.Visible := False;
-            StatusBar1.Panels[1].Text := 'Online';
-          end
-          else
-          begin
-            whatsOn.Visible := False;
-            whatsOff.Visible := True;
-            StatusBar1.Panels[1].Text := 'Offline';
+        if FDMemTable1.Locate('name', edtInstanceName.Text, []) then
+        begin
+          try
+            lblNumeroConectado.Caption := FDMemTable1.FieldByName('ownerJid').AsString;
+            lblNumeroConectado.Caption := Copy(lblNumeroConectado.Caption,1, pos('@', lblNumeroConectado.Caption) -1);
+            gravar_log('Número Conectado: ' + lblNumeroConectado.Caption);
+          except on E: Exception do
+            lblNumeroConectado.Caption := '';
           end;
-        except
-          on E: Exception do
-          begin
-            whatsOn.Visible := False;
-            whatsOff.Visible := True;
-            StatusBar1.Panels[1].Text := 'Offline';
+
+          StatusBar1.Panels[0].Text := lblNumeroConectado.Caption;
+
+          try
+            StatusBar1.Panels[4].Text := FDMemTable1.FieldByName('profileName').AsString;
+          except on E: Exception do
           end;
+
+          //wpu_NUMERO_WHATS_CONECTADO := lblNumeroConectado.Caption;
+
+          try
+            if (FDMemTable1.FieldByName('ownerJid').AsString <> '') and (FDMemTable1.FieldByName('connectionStatus').AsString = 'open')  then //status
+            begin
+              whatsOn.Visible := True;
+              whatsOff.Visible := False;
+              StatusBar1.Panels[1].Text := 'Online';
+            end
+            else
+            begin
+              whatsOn.Visible := False;
+              whatsOff.Visible := True;
+              StatusBar1.Panels[1].Text := 'Offline';
+            end;
+          except
+            on E: Exception do
+            begin
+              whatsOn.Visible := False;
+              whatsOff.Visible := True;
+              StatusBar1.Panels[1].Text := 'Offline';
+            end;
+          end;
+
+
         end;
+      end
+      else
+      begin
+        if FDMemTable1.Locate('instance.instanceName', edtInstanceName.Text, []) then
+        begin
+          try
+            lblNumeroConectado.Caption := FDMemTable1.FieldByName('instance.owner').AsString;
+            lblNumeroConectado.Caption := Copy(lblNumeroConectado.Caption,1, pos('@', lblNumeroConectado.Caption) -1);
+            gravar_log('Número Conectado: ' + lblNumeroConectado.Caption);
+          except on E: Exception do
+            lblNumeroConectado.Caption := '';
+          end;
+
+          StatusBar1.Panels[0].Text := lblNumeroConectado.Caption;
+
+          try
+            StatusBar1.Panels[4].Text := FDMemTable1.FieldByName('instance.profileName').AsString;
+          except on E: Exception do
+          end;
+
+          //wpu_NUMERO_WHATS_CONECTADO := lblNumeroConectado.Caption;
+
+          try
+            if (FDMemTable1.FieldByName('instance.owner').AsString <> '') and (FDMemTable1.FieldByName('instance.status').AsString = 'open')  then //status
+            begin
+              whatsOn.Visible := True;
+              whatsOff.Visible := False;
+              StatusBar1.Panels[1].Text := 'Online';
+            end
+            else
+            begin
+              whatsOn.Visible := False;
+              whatsOff.Visible := True;
+              StatusBar1.Panels[1].Text := 'Offline';
+            end;
+          except
+            on E: Exception do
+            begin
+              whatsOn.Visible := False;
+              whatsOff.Visible := True;
+              StatusBar1.Panels[1].Text := 'Offline';
+            end;
+          end;
 
 
+        end;
       end;
     end;
+
 
 end;
 
@@ -919,6 +988,7 @@ begin
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.version2latest := chkVersion2Latest.Checked;
 
   if Type_File = 'document' then
     sResponse := EvolutionAPI1.SendFileBase64(ed_num.Text, mem_message.Text, Type_File, LBase64, FileName)
@@ -1032,6 +1102,8 @@ begin
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.version2latest := chkVersion2Latest.Checked;
+
   sResponse := EvolutionAPI1.SendContact(ed_num.Text, edtNumberShared.Text, edtNameContactShared.Text, '');
   memResponse.Lines.Add('');
 end;
@@ -1106,6 +1178,7 @@ begin
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.version2latest := chkVersion2Latest.Checked;
   sResponse := EvolutionAPI1.SendText(ed_num.Text, edtURL.Text, 'true');
 
   memResponse.Lines.Add(sResponse);
@@ -1176,6 +1249,8 @@ begin
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.version2latest := chkVersion2Latest.Checked;
+
   sResponse := EvolutionAPI1.SendListMenu(ed_num.Text, mem_message.Text, sSections, edtHeader.Text, edtFooter.Text, edtButtonText.Text);
 
   memResponse.Lines.Add(sResponse);
@@ -1205,6 +1280,7 @@ begin
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.version2latest := chkVersion2Latest.Checked;
   sResponse := EvolutionAPI1.SendPoll(ed_num.Text, sPollMessage);
 
   memResponse.Lines.Add(sResponse);
@@ -1231,7 +1307,10 @@ begin
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
-  sResponse := EvolutionAPI1.SendLocation(ed_num.Text, mem_message.Text, sLocation, edtHeader.Text, edtFooter.Text);
+  EvolutionAPI1.version2latest := chkVersion2Latest.Checked;
+
+  //sResponse := EvolutionAPI1.SendLocation(ed_num.Text, mem_message.Text, sLocation, edtHeader.Text, edtFooter.Text);
+  sResponse := EvolutionAPI1.SendLocation(ed_num.Text, mem_message.Text, sLocation, '-70.4078', '25.3789', 'Rio de Janeiro-RJ', 'Cristo Rendedor');
 
   memResponse.Lines.Add(sResponse);
 end;
@@ -1291,6 +1370,7 @@ begin
   //SendReaction(waid, message_id, emoji: string)
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.version2latest := chkVersion2Latest.Checked;
   //function TEvolutionAPI.SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string): string;
   sResponse := EvolutionAPI1.SendReplies(ed_num.Text, edtMessage_id.Text, mem_message.Text, edtRemoteJidQuoted.Text, mem_Quoted_message.Text, cFromMe.Text, 'false');
 
@@ -1321,6 +1401,8 @@ begin
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.version2latest := chkVersion2Latest.Checked;
+
   sResponse := EvolutionAPI1.SendText(ed_num.Text, mem_message.Text);
 
   edtMessage_id.Text := sResponse;
@@ -1357,6 +1439,7 @@ begin
   //SendReaction(waid, message_id, emoji: string)
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
+  EvolutionAPI1.version2latest := chkVersion2Latest.Checked;
   sResponse := EvolutionAPI1.editMessage(ed_num.Text, edtMessage_id.Text, cFromMe.Text, ed_num.Text, mem_message.Text);
 
   memResponse.Lines.Add(sResponse);
@@ -1386,6 +1469,13 @@ begin
   memResponse.Lines.Add(sResponse);
 end;
 
+procedure TfrmPrincipal.Button3Click(Sender: TObject);
+begin
+  Application.CreateForm(TfrmFunctionGroup, frmFunctionGroup);
+  frmFunctionGroup.ShowModal;
+  frmFunctionGroup.Free;
+end;
+
 procedure TfrmPrincipal.FormCreate(Sender: TObject);
 begin
   EvolutionAPI1.Port := 8080;
@@ -1394,14 +1484,23 @@ begin
 end;
 
 procedure TfrmPrincipal.FormShow(Sender: TObject);
+var
+  diretorio_temp: string;
 begin
   EvolutionAPI1.Token := edtTokenAPI.Text;
   EvolutionAPI1.instanceName := edtInstanceName.Text;
   EvolutionAPI1.DDIDefault := StrToIntDef(edtDDI_Default.Text, 55);
   EvolutionAPI1.Port := StrToIntDef(edtPORT_SERVER.Text, 8080);
   EvolutionAPI1.PortWebhook := StrToIntDef(edtPortWebhook.Text, 8020);
+  EvolutionAPI1.version2latest := chkVersion2Latest.Checked;
+
   EvolutionAPI1.StartServer;
 
+  diretorio_temp := ExtractFilePath(Application.ExeName) + 'Temp\';
+  Sleep(1);
+
+  if not DirectoryExists(diretorio_temp) then
+    CreateDir(diretorio_temp);
 
 end;
 
@@ -1495,6 +1594,10 @@ begin
   edtURLWebhook.Text :=  ArquivoConfig.ReadString('CONFIGURACAO', 'URLWebhook', 'http://localhost:3000/webhook');
   edtEventsSubscribe.Text := ArquivoConfig.ReadString('CONFIGURACAO', 'EventsSubscribe', '"QRCODE_UPDATED", "MESSAGES_UPSERT", "MESSAGES_UPDATE", "SEND_MESSAGE", "CONNECTION_UPDATE"');
 
+  if ArquivoConfig.ReadString('CONFIGURACAO', 'Version2Latest', 'N') = 'S' then
+    chkVersion2Latest.Checked := true else
+    chkVersion2Latest.Checked := false;
+
   ArquivoConfig.UpdateFile;
 
   FreeAndNil(ArquivoConfig);
@@ -1524,6 +1627,11 @@ begin
   ArquivoConfig.writeString('CONFIGURACAO', 'NumberWhatsApp', edtNumberWhatsApp.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'URLWebhook', edtURLWebhook.Text);
   ArquivoConfig.writeString('CONFIGURACAO', 'EventsSubscribe', edtEventsSubscribe.Text);
+
+  if chkVersion2Latest.Checked then
+    ArquivoConfig.writeString('CONFIGURACAO', 'Version2Latest', 'S') else
+    ArquivoConfig.writeString('CONFIGURACAO', 'Version2Latest', 'N');
+
 
   ArquivoConfig.UpdateFile;
 
@@ -1851,12 +1959,12 @@ begin
     if Assigned(Result.data) then
     begin
       memResponse.Lines.Add('messageType: ' + Result.data.messageType);
-      memResponse.Lines.Add('messageTimestamp: ' + DateTimeToStr(UnixToDateTime(Result.data.messageTimestamp, False)));
+      //memResponse.Lines.Add('messageTimestamp: ' + DateTimeToStr(UnixToDateTime(Result.data.messageTimestamp, False)));
       memResponse.Lines.Add('source: ' + Result.data.source);
     end;
 
     memResponse.Lines.Add('apikey: ' + Result.apikey);
-    memResponse.Lines.Add('date_time: ' + Result.date_time);
+    //memResponse.Lines.Add('date_time: ' + Result.date_time);
     memResponse.Lines.Add('destination: ' + Result.destination);
     memResponse.Lines.Add('');
 
@@ -2080,14 +2188,14 @@ begin
     if Assigned(Result.data) then
     begin
       memResponse.Lines.Add('remoteJid: ' + Result.data.remoteJid);
-      memResponse.Lines.Add('datetime: ' + DateTimeToStr(UnixToDateTime(Result.data.datetime, False)));
+      //memResponse.Lines.Add('datetime: ' + DateTimeToStr(UnixToDateTime(Result.data.datetime, False)));
       memResponse.Lines.Add('fromMe: ' + BooleanToStr(Result.data.fromMe) );
       memResponse.Lines.Add('id: ' + Result.data.id);
       memResponse.Lines.Add('status: ' + Result.data.status);
       memResponse.Lines.Add('owner: ' + Result.data.owner);
 
       //Votes
-      if Assigned(Result.data.pollUpdates) then
+      {if Assigned(Result.data.pollUpdates) then
       begin
         for m := 0 to Length(Result.data.pollUpdates) -1 do
         begin
@@ -2098,11 +2206,12 @@ begin
           except on E: Exception do
           end;
         end;
-      end;
+      end;}
+
     end;
 
     memResponse.Lines.Add('apikey: ' + Result.apikey);
-    memResponse.Lines.Add('date_time: ' + Result.date_time);
+    //memResponse.Lines.Add('date_time: ' + Result.date_time);
     memResponse.Lines.Add('destination: ' + Result.destination);
     memResponse.Lines.Add('server_url: ' + Result.server_url);
     memResponse.Lines.Add('');

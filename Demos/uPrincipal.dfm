@@ -3388,7 +3388,7 @@ object frmPrincipal: TfrmPrincipal
     object btnAudio: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 545
+      Top = 576
       Width = 221
       Height = 25
       Align = alTop
@@ -3398,6 +3398,7 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 8
       Visible = False
       OnClick = btnAudioClick
+      ExplicitTop = 545
     end
     object btnContato: TButton
       AlignWithMargins = True
@@ -3415,7 +3416,7 @@ object frmPrincipal: TfrmPrincipal
     object btnSticker: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 576
+      Top = 607
       Width = 221
       Height = 25
       Align = alTop
@@ -3425,6 +3426,7 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 9
       Visible = False
       OnClick = btnStickerClick
+      ExplicitTop = 576
     end
     object btnLocalizacao: TButton
       AlignWithMargins = True
@@ -3518,6 +3520,19 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 18
       OnClick = Button1Click
     end
+    object Button3: TButton
+      AlignWithMargins = True
+      Left = 5
+      Top = 545
+      Width = 221
+      Height = 25
+      Align = alTop
+      Caption = 'Fun'#231#245'es de Grupo'
+      ImageIndex = 18
+      Images = ImageList1
+      TabOrder = 19
+      OnClick = Button3Click
+    end
   end
   object edtInstanceName: TEdit
     Left = 16
@@ -3580,7 +3595,7 @@ object frmPrincipal: TfrmPrincipal
   object edtURLWebhook: TEdit
     Left = 16
     Top = 223
-    Width = 256
+    Width = 193
     Height = 21
     TabOrder = 9
     Text = 'http://localhost:3000/'
@@ -3838,9 +3853,18 @@ object frmPrincipal: TfrmPrincipal
     TabOrder = 25
     OnClick = BitBtn5Click
   end
+  object chkVersion2Latest: TCheckBox
+    Left = 218
+    Top = 224
+    Width = 82
+    Height = 17
+    Anchors = [akTop, akRight]
+    Caption = 'Version2Latest'
+    TabOrder = 26
+  end
   object ImageList1: TImageList
     DrawingStyle = dsTransparent
-    Left = 265
+    Left = 441
     Top = 560
     Bitmap = {
       494C01011A003000040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
