@@ -12,7 +12,8 @@ uses
   uEvolutionAPI in '..\Source\uEvolutionAPI.pas',
   uWhatsAppBusinessClasses in '..\Source\uWhatsAppBusinessClasses.pas',
   uEventsMessageClasses in '..\Source\uEventsMessageClasses.pas',
-  uDownloadMediaClass in '..\Source\uDownloadMediaClass.pas';
+  uDownloadMediaClass in '..\Source\uDownloadMediaClass.pas',
+  uFunctionGroup in 'uFunctionGroup.pas' {frmFunctionGroup};
 
 {$R *.res}
 

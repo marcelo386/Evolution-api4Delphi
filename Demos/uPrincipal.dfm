@@ -3267,7 +3267,7 @@ object frmPrincipal: TfrmPrincipal
     object btnLocalizacaoBotao: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 204
+      Top = 266
       Width = 221
       Height = 25
       Align = alTop
@@ -3276,6 +3276,7 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 12
       OnClick = btnLocalizacaoBotaoClick
+      ExplicitTop = 204
     end
     object btnLink: TButton
       AlignWithMargins = True
@@ -3293,7 +3294,7 @@ object frmPrincipal: TfrmPrincipal
     object btnDownloadMedia: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 390
+      Top = 452
       Width = 221
       Height = 25
       Align = alTop
@@ -3302,11 +3303,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 6
       OnClick = btnDownloadMediaClick
+      ExplicitTop = 390
     end
     object btnImagem: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 452
+      Top = 483
       Width = 221
       Height = 25
       Align = alTop
@@ -3315,11 +3317,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 5
       OnClick = btnImagemClick
+      ExplicitTop = 452
     end
     object btnVideoBotao: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 514
+      Top = 545
       Width = 221
       Height = 25
       Align = alTop
@@ -3328,11 +3331,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 4
       Visible = False
+      ExplicitTop = 514
     end
     object btnVideo: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 483
+      Top = 514
       Width = 221
       Height = 25
       Align = alTop
@@ -3342,11 +3346,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 3
       Visible = False
+      ExplicitTop = 483
     end
     object btnListaMenu: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 173
+      Top = 235
       Width = 221
       Height = 25
       Align = alTop
@@ -3356,11 +3361,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 2
       OnClick = btnListaMenuClick
+      ExplicitTop = 173
     end
     object btnBotaoSimples: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 421
+      Top = 204
       Width = 221
       Height = 25
       Align = alTop
@@ -3369,8 +3375,9 @@ object frmPrincipal: TfrmPrincipal
       ImageIndex = 1
       Images = ImageList1
       TabOrder = 1
-      Visible = False
       OnClick = btnBotaoSimplesClick
+      ExplicitLeft = 21
+      ExplicitTop = 156
     end
     object btnTextoSimples: TButton
       AlignWithMargins = True
@@ -3388,7 +3395,7 @@ object frmPrincipal: TfrmPrincipal
     object btnAudio: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 576
+      Top = 607
       Width = 221
       Height = 25
       Align = alTop
@@ -3398,7 +3405,7 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 8
       Visible = False
       OnClick = btnAudioClick
-      ExplicitTop = 545
+      ExplicitTop = 576
     end
     object btnContato: TButton
       AlignWithMargins = True
@@ -3416,7 +3423,7 @@ object frmPrincipal: TfrmPrincipal
     object btnSticker: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 607
+      Top = 638
       Width = 221
       Height = 25
       Align = alTop
@@ -3426,7 +3433,7 @@ object frmPrincipal: TfrmPrincipal
       TabOrder = 9
       Visible = False
       OnClick = btnStickerClick
-      ExplicitTop = 576
+      ExplicitTop = 607
     end
     object btnLocalizacao: TButton
       AlignWithMargins = True
@@ -3457,7 +3464,7 @@ object frmPrincipal: TfrmPrincipal
     object Button2: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 328
+      Top = 390
       Width = 221
       Height = 25
       Align = alTop
@@ -3466,11 +3473,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 14
       OnClick = Button2Click
+      ExplicitTop = 328
     end
     object btnReagir: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 266
+      Top = 328
       Width = 221
       Height = 25
       Align = alTop
@@ -3479,11 +3487,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 15
       OnClick = btnReagirClick
+      ExplicitTop = 266
     end
     object btnResponder: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 235
+      Top = 297
       Width = 221
       Height = 25
       Align = alTop
@@ -3492,11 +3501,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 16
       OnClick = btnResponderClick
+      ExplicitTop = 235
     end
     object BitBtn2: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 297
+      Top = 359
       Width = 221
       Height = 25
       Align = alTop
@@ -3505,11 +3515,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 17
       OnClick = BitBtn2Click
+      ExplicitTop = 297
     end
     object Button1: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 359
+      Top = 421
       Width = 221
       Height = 25
       Align = alTop
@@ -3519,11 +3530,12 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 18
       OnClick = Button1Click
+      ExplicitTop = 359
     end
     object Button3: TButton
       AlignWithMargins = True
       Left = 5
-      Top = 545
+      Top = 576
       Width = 221
       Height = 25
       Align = alTop
@@ -3532,6 +3544,23 @@ object frmPrincipal: TfrmPrincipal
       Images = ImageList1
       TabOrder = 19
       OnClick = Button3Click
+      ExplicitTop = 545
+    end
+    object Button4: TButton
+      AlignWithMargins = True
+      Left = 5
+      Top = 173
+      Width = 221
+      Height = 25
+      Align = alTop
+      Caption = 'Link e Call Button'
+      HotImageIndex = 2
+      ImageIndex = 1
+      Images = ImageList1
+      TabOrder = 20
+      OnClick = Button4Click
+      ExplicitLeft = 0
+      ExplicitTop = 204
     end
   end
   object edtInstanceName: TEdit

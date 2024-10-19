@@ -124,6 +124,7 @@ type
     BitBtn5: TBitBtn;
     chkVersion2Latest: TCheckBox;
     Button3: TButton;
+    Button4: TButton;
     procedure btnTextoSimplesClick(Sender: TObject);
     procedure btnBotaoSimplesClick(Sender: TObject);
     procedure btnListaMenuClick(Sender: TObject);
@@ -178,6 +179,7 @@ type
     procedure BitBtn5Click(Sender: TObject);
     procedure btnDownloadMediaClick(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
 
   private
     procedure CarregarImagemBase64(const Base64Str: string; const Image: TImage);
@@ -204,7 +206,7 @@ implementation
 
 {$R *.dfm}
 
-uses uRetMensagem, uFetchInstancesClass, uConnectionUpdateClass, uQrcodeUpdateClass, uDownloadMediaClass, uFetchInstancesClass2;
+uses uRetMensagem, uFetchInstancesClass, uConnectionUpdateClass, uQrcodeUpdateClass, uDownloadMediaClass, uFetchInstancesClass2, uFunctionGroup;
 
 const
   AutoFileType = 7; // Default define automaticamente o tipo de arquivo
@@ -1056,25 +1058,17 @@ begin
   end;
 
   sAction :=
-      '  "action": { ' +
-      '    "buttons": [ ' +
       '      {  ' +
       '        "type": "reply", ' +
-      '        "reply": { ' +
-      '          "id": "UNIQUE_BUTTON_ID_1", ' +
-      '          "title": "SIM" ' +
-      '        } ' +
+      '        "id": "UNIQUE_BUTTON_ID_1", ' +
+      '        "displayText": "SIM" ' +
       '      }, ' +
       '      {  ' +
       '        "type": "reply", ' +
-      '        "reply": { ' +
-      '          "id": "UNIQUE_BUTTON_ID_2", ' +
-      '          "title": "NÃO" ' +
-      '        } ' +
-      '      } ' +
-      '    ]  ' +
-      '  } ' +
-      ' } ';
+      '        "id": "UNIQUE_BUTTON_ID_2", ' +
+      '        "displayText": "NÃO" ' +
+      '      } ';
+
 
 
   EvolutionAPI1.Token := edtTokenAPI.Text;
@@ -1474,6 +1468,50 @@ begin
   Application.CreateForm(TfrmFunctionGroup, frmFunctionGroup);
   frmFunctionGroup.ShowModal;
   frmFunctionGroup.Free;
+end;
+
+procedure TfrmPrincipal.Button4Click(Sender: TObject);
+var
+  sAction : string;
+begin
+  if Trim(ed_num.Text) = '' then
+  begin
+    ShowMessage('INFORM THE DESTINATION WHATSAPP NUMBER');
+    ed_num.SetFocus;
+    Exit;
+  end;
+
+  if Trim(mem_message.Text) = '' then
+  begin
+    ShowMessage('INFORM THE BODY MESSAGE TO BE SENT');
+    mem_message.SetFocus;
+    Exit;
+  end;
+
+  sAction :=
+      '      {  ' +
+      '        "type": "copy", ' +
+      '        "copyCode": "ZXN0ZSDDqSB1bSBjw7NkaWdvIGRlIHRleHRvIGNvcGnDoXZlbC4=", ' +
+      '        "displayText": "Copy" ' +
+      '      }, ' +
+      '      {  ' +
+      '        "type": "url", ' +
+      '        "url": "http://evolution-api.com", ' +
+      '        "displayText": "Acesse o Site" ' +
+      '      }, ' +
+      '      {  ' +
+      '        "type": "call", ' +
+      '        "phoneNumber": "557499879409", ' +
+      '        "displayText": "Me Ligue" ' +
+      '      } ';
+
+
+
+  EvolutionAPI1.Token := edtTokenAPI.Text;
+  EvolutionAPI1.instanceName := edtInstanceName.Text;
+  sResponse := EvolutionAPI1.SendButton(ed_num.Text, mem_message.Text, sAction, edtHeader.Text, edtFooter.Text);
+
+  memResponse.Lines.Add(sResponse);
 end;
 
 procedure TfrmPrincipal.FormCreate(Sender: TObject);

@@ -123,9 +123,14 @@ type
     function SendReaction(waid, message_id, emoji, fromMe: string): string;
     function SendPoll(waid, pollMessage: string; name: string = ''; selectableCount: Integer = 1): string;
 
-    //Deprecated v2.0
-    function SendButton(waid, body, actions, header, footer: string): string; deprecated;
+    function SendButton(waid, body, actions, header, footer: string): string;
     function SendListMenu(waid, body, sections, header, footer, Button_Text: string): string;
+
+    function SendFakeCall(waid, isVideo, callDuration: string): string;
+
+    //Deprecated v2.0
+
+
     function SendReplies(waid, message_id, reply_body, reply_remoteJid, message_body, fromMe: string; previewurl: string = 'false'): string;
     function SendGhostMetionText(groupJid, body: string; previewurl: string = 'false'): string;
 
@@ -151,6 +156,9 @@ type
     function SetWebhook(url, events: string; webhook_by_events, webhook_base64: Boolean): string;
     function SetSettings(reject_call, msg_call, groups_ignore, always_online, read_messages, read_status: string): string;
     function fetchProfilePictureUrl(waid: string): string;
+
+    function updateProfilePicture(urlImage: string): string;
+
     function connectionState(instanceName: string): string;
     function logout(instanceName: string): string;
     function DeleteInstance(instanceName: string): string;
@@ -443,11 +451,13 @@ begin
     end;
 
     try
+      Response := '{"checknumerexists":' + Response + '}';
+
       if Assigned(FOnResponseCheckNumberExists) then
         FOnResponseCheckNumberExists(Self, Response);
 
       //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
-      //Result := RetEnvMensagem.key.id;
+
 
       Result := Response;
     except
@@ -1712,6 +1722,7 @@ var
   json: string;
   UTF8Texto: UTF8String;
   RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  RetEnvMensagem2 : uRetMensagem.TRetSendMessageClass;
 begin
   Result := '';
   try
@@ -1723,56 +1734,23 @@ begin
 
     json :=
       '{ ' +
-      '  "messaging_product": "whatsapp", ' +
-      '  "recipient_type": "individual", ' +
-      '  "to": "' + waid + '", ' +
-      '  "type": "interactive", ' +
-      '  "interactive": {  ' +
-      '  "type": "button", ' +
-      IfThen( Trim(header) <> '' ,
-      '  "header": { ' +
-      '    "type": "text",  ' +
-      '    "text": "' + header + '"  ' +
-      '  }, ', '') +
+      '  "number": "' + waid + '", ' +
+      '  "description": "' + body + '", ' +
+      '  "delay": 1200, ' +
+      IfThen( Trim(header) <> '' ,'    "title": "' + header + '", ', ' ') +
+      IfThen( Trim(footer) <> '' ,'    "footer": "' + footer + '", ', ' ') +
 
-      '  "body": { ' +
-      '    "text": "' + body + '" ' +
-      '  }, ' +
-
-      IfThen( Trim(footer) <> '' ,
-      '  "footer": { ' +
-      '    "text": "' + footer + '" ' +
-      '  }, ', '') +
-      actions +
-
-      (*
-      '  "action": { ' +
-      '    "buttons": [ ' +
-      '      {  ' +
-      '        "type": "reply", ' +
-      '        "reply": { ' +
-      '          "id": "UNIQUE_BUTTON_ID_1", ' +
-      '          "title": "SIM" ' +
-      '        } ' +
-      '      }, ' +
-      '      {  ' +
-      '        "type": "reply", ' +
-      '        "reply": { ' +
-      '          "id": "UNIQUE_BUTTON_ID_2", ' +
-      '          "title": "NÃO" ' +
-      '        } ' +
-      '      } ' +
-      '    ]  ' +
-      '  } ' +
-      ' } ' +
-      *)
-
-      '}';
+      '  "buttons": [' +  actions + '] ' +
+      '} ';
 
     UTF8Texto := UTF8Encode(json);
 
+    if (Port = 80) or (Port = 0) then
+      wpu_url := urlServer + '/message/sendButtons/' + instanceName else
+      wpu_url := urlServer + ':' + Port.ToString + '/message/sendButtons/' + instanceName;
+
     try
-      response:= TRequest.New.BaseURL(urlServer+ ':' + Port.ToString + '/' + instanceName + '/messages')
+      response:= TRequest.New.BaseURL(wpu_url)
         .ContentType('application/json')
         .AddHeader('ApiKey', Token)
         .AddBody(UTF8Texto)
@@ -1794,8 +1772,17 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
-      Result := RetEnvMensagem.key.id;
+      if version2latest then
+      begin
+        RetEnvMensagem2 := TRetSendMessageClass.FromJsonString(response);
+        Result := RetEnvMensagem2.key.id;
+      end
+      else
+      begin
+        RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+        Result := RetEnvMensagem.key.id;
+      end;
+
     except
       on E: Exception do
       begin
@@ -1932,6 +1919,83 @@ begin
   finally
   end;
 
+end;
+
+function TEvolutionAPI.SendFakeCall(waid, isVideo, callDuration: string): string;
+var
+  response: string;
+  json: string;
+  RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  url: string;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+    if (pos('@s.whatsapp.net', waid) = 0) and (pos('@g.us', waid) = 0) then
+    begin
+      if (length(waid) = 11) or (length(waid) = 10) then
+        waid := DDIDefault.ToString + waid;
+      waid := waid + '@s.whatsapp.net';
+    end;
+
+    if Trim(isVideo) = '' then
+      isVideo := 'false';
+
+    if Trim(callDuration) = '' then
+      callDuration := '3';
+
+    json :=
+      '{ ' +
+      '  "number": "' + waid + '", ' +
+      '  "isVideo": ' + isVideo + ', ' +
+      '  "callDuration": ' + callDuration + ' ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      if (Port = 80) or (Port = 0) then
+        url := urlServer + '/call/offer/' + instanceName else
+        url := urlServer + ':' + Port.ToString + '/call/offer/' + instanceName;
+
+      response:= TRequest.New.BaseURL(url)
+      //response:= TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/message/sendText/' + instanceName)
+        .ContentType('application/json')
+        .AddHeader('ApiKey', Token)
+        .AddBody(UTF8Texto)
+        .Post
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message + ' url: ' + url + ' json: ' + json;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+      //Result := RetEnvMensagem.key.id;
+
+      //Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message  + ' url:' + url;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
 end;
 
 function TEvolutionAPI.SendFile(waid, body, typeFile, url: string; const filename: string = ''; quoted: string = ''; mentionsEveryOne: string = 'false'; mentioned: string = ''): string;
@@ -2289,30 +2353,51 @@ var
   json: string;
   UTF8Texto: UTF8String;
   RetEnvMensagem: uRetMensagem.TRetEnvMenssageClass;
+  RetEnvMensagem2 : uRetMensagem.TRetSendMessageClass;
 begin
   Result := '';
   try
-    if (length(waid) = 11) or (length(waid) = 10) then
-      waid := DDIDefault.ToString + waid;
+    if (pos('@s.whatsapp.net', waid) = 0) and (pos('@g.us', waid) = 0) then
+    begin
+      if (length(waid) = 11) or (length(waid) = 10) then
+        waid := DDIDefault.ToString + waid;
+      waid := waid + '@s.whatsapp.net';
+    end;
 
     body := CaractersWeb(body);
 
-    json :=
-      '{' +
-      '"number": "' + waid + '", ' +
-      '"options": { ' +
-      '    "delay": 1200, ' +
-      '    "presence": "composing" ' +
-      '}, ' +
-      '"listMessage": { ' +
-      IfThen( Trim(header) <> '' ,'    "title": "List Title", ', ' ') +
-      '    "description": "' + body + '", ' +
-      '    "buttonText": "'  + Button_Text + '", ' +
-      '    "footerText": "'  + footer + '", ' +
-      '    "sections": [ '   + Sections +
-      '        ] ' +
-      '    } ' +
-      '} ';
+    if version2latest then
+    begin
+      json :=
+        '{' +
+        '  "number": "' + waid + '", ' +
+        '  "delay": 1200, ' +
+      IfThen( Trim(header) <> '' ,'  "title": "' + header + '", ', ' ') +
+      IfThen( Trim(footer) <> '' ,'  "footerText": "' + footer + '", ', ' ') +
+        '  "description": "' + body + '", ' +
+        '  "buttonText": "'  + Button_Text + '", ' +
+        '  "sections": [ '   + Sections + ' ] ' +
+        '} ';
+    end
+    else
+    begin
+      json :=
+        '{' +
+        '"number": "' + waid + '", ' +
+        '"options": { ' +
+        '    "delay": 1200, ' +
+        '    "presence": "composing" ' +
+        '}, ' +
+        '"listMessage": { ' +
+        IfThen( Trim(header) <> '' ,'    "title": "List Title", ', ' ') +
+        '    "description": "' + body + '", ' +
+        '    "buttonText": "'  + Button_Text + '", ' +
+        '    "footerText": "'  + footer + '", ' +
+        '    "sections": [ '   + Sections +
+        '        ] ' +
+        '    } ' +
+        '} ';
+    end;
 
     UTF8Texto := UTF8Encode(json);
 
@@ -2345,8 +2430,17 @@ begin
       if Assigned(FOnRetSendMessage) then
         FOnRetSendMessage(Self, Response);
 
-      RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
-      Result := RetEnvMensagem.key.id;
+      if version2latest then
+      begin
+        RetEnvMensagem2 := TRetSendMessageClass.FromJsonString(response);
+        Result := RetEnvMensagem2.key.id;
+      end
+      else
+      begin
+        RetEnvMensagem := TRetEnvMenssageClass.FromJsonString(response);
+        Result := RetEnvMensagem.key.id;
+      end;
+
     except
       on E: Exception do
       begin
@@ -3277,24 +3371,36 @@ var
 begin
   Result := '';
   try
-    if (length(waid) = 11) or (length(waid) = 10) then
-      waid := DDIDefault.ToString + waid;
-
     if (pos('@s.whatsapp.net', waid) = 0) and (pos('@g.us', waid) = 0) then
+    begin
+      if (length(waid) = 11) or (length(waid) = 10) then
+        waid := DDIDefault.ToString + waid;
       waid := waid + '@s.whatsapp.net';
+    end;
 
     body := CaractersWeb(body);
 
     if version2latest then
     begin
-      json :=
-        '{ ' +
-        '    "number": "' + waid + '", ' +
-        '    "text": "' + body + '", ' +
-        '    "delay": 500' + ',' +
-        '    "linkPreview": ' + previewurl +  ' ' +
-        IfThen( Trim(quoted) <> '' ,'  ,"quoted": ' + quoted + '  ', '') +
-        '} ';
+      if (pos('@g.us', waid) > 0) then //groupJid
+        json :=
+          '{ ' +
+          '    "groupJid": "' + waid + '", ' +
+          '    "number": "' + waid + '", ' +
+          '    "text": "' + body + '", ' +
+          '    "delay": 1200' + ',' +
+          '    "linkPreview": ' + previewurl +  ' ' +
+          IfThen( Trim(quoted) <> '' ,'  ,"quoted": ' + quoted + '  ', '') +
+          '} '
+      else
+        json :=
+          '{ ' +
+          '    "number": "' + waid + '", ' +
+          '    "text": "' + body + '", ' +
+          '    "delay": 1200' + ',' +
+          '    "linkPreview": ' + previewurl +  ' ' +
+          IfThen( Trim(quoted) <> '' ,'  ,"quoted": ' + quoted + '  ', '') +
+          '} ';
 
 (*
        "quoted": {
@@ -4125,6 +4231,67 @@ begin
   finally
   end;
 
+end;
+
+function TEvolutionAPI.updateProfilePicture(urlImage: string): string;
+var
+  response: string;
+  json: string;
+  RetEnvMensagem: uRetMensagem.TRetCreateInstanceClass;
+  UTF8Texto: UTF8String;
+begin
+  Result := '';
+  try
+    json :=
+      '{ ' +
+      '  "image": "' + urlImage + '" ' +
+      '} ';
+
+    UTF8Texto := UTF8Encode(json);
+
+    try
+      if (Port = 80) or (Port = 0) then
+        wpu_url := urlServer + '/chat/updateProfilePicture/' + instanceName else
+        wpu_url := urlServer + ':' + Port.ToString + '/chat/updateProfilePicture/' + instanceName;
+
+      response:= TRequest.New.BaseURL(wpu_url)
+      //response := TRequest.New.BaseURL(urlServer + ':' + Port.ToString + '/group/updateGroupPicture/' + instanceName + '?groupJid=' + groupJid)
+        .ContentType('application/json')
+        //.Token(token);
+        .AddHeader('apikey', token)
+        .AddBody(UTF8Texto)
+        .Put
+        .Content;
+      //gravar_log(response);
+    except
+      on E: Exception do
+      begin
+        //
+        //gravar_log('ERROR ' + e.Message + SLINEBREAK);
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+
+    try
+      if Assigned(FOnRetSendMessage) then
+        FOnRetSendMessage(Self, Response);
+
+      //RetEnvMensagem := TRetEnvMenssageClass.FromJSON(response);
+      //Result := RetEnvMensagem.key.id;
+      Result := Response;
+    except
+      on E: Exception do
+      begin
+        Result := 'Error: ' + e.Message;
+        Exit;
+      end;
+    end;
+
+  finally
+  end;
+
 end;
 
 function TEvolutionAPI.updateToggleEphemeral(expiration, groupJid: string): string;
