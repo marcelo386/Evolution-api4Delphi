@@ -1786,7 +1786,7 @@ begin
     except
       on E: Exception do
       begin
-        Result := 'Error: ' + e.Message;
+        Result := 'Error: ' + e.Message + ' ' + json;
         Exit;
       end;
     end;
@@ -2368,16 +2368,32 @@ begin
 
     if version2latest then
     begin
-      json :=
-        '{' +
-        '  "number": "' + waid + '", ' +
-        '  "delay": 1200, ' +
-      IfThen( Trim(header) <> '' ,'  "title": "' + header + '", ', ' ') +
-      IfThen( Trim(footer) <> '' ,'  "footerText": "' + footer + '", ', ' ') +
-        '  "description": "' + body + '", ' +
-        '  "buttonText": "'  + Button_Text + '", ' +
-        '  "sections": [ '   + Sections + ' ] ' +
-        '} ';
+      if (pos('"sections":', Sections) > 0) then
+      begin
+        json :=
+          '{' +
+          '  "number": "' + waid + '", ' +
+          '  "delay": 1200, ' +
+        IfThen( Trim(header) <> '' ,'  "title": "' + header + '", ', ' ') +
+        IfThen( Trim(footer) <> '' ,'  "footerText": "' + footer + '", ', ' ') +
+          '  "description": "' + body + '", ' +
+          '  "buttonText": "'  + Button_Text + '", ' +
+          Sections + ' ' +
+          '} ';
+      end
+      else
+      begin
+        json :=
+          '{' +
+          '  "number": "' + waid + '", ' +
+          '  "delay": 1200, ' +
+        IfThen( Trim(header) <> '' ,'  "title": "' + header + '", ', ' ') +
+        IfThen( Trim(footer) <> '' ,'  "footerText": "' + footer + '", ', ' ') +
+          '  "description": "' + body + '", ' +
+          '  "buttonText": "'  + Button_Text + '", ' +
+          '  "sections": [ '   + Sections + ' ] ' +
+          '} ';
+      end;
     end
     else
     begin

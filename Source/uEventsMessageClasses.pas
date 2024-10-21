@@ -22,11 +22,105 @@ type
     class function FromJsonString(AJsonString: string): TDeviceListMetadataClass;
   end;
 
+
+  TButtonsClass = class
+  private
+    FButtonParamsJson: String;
+    FName: String;
+  public
+    property buttonParamsJson: String read FButtonParamsJson write FButtonParamsJson;
+    property name: String read FName write FName;
+    //function ToJsonString: string;
+    //class function FromJsonString(AJsonString: string): TButtonsClass;
+  end;
+
+  TNativeFlowMessageClass = class
+  private
+    FButtons: TArray<TButtonsClass>;
+    FMessageParamsJson: String;
+  public
+    property buttons: TArray<TButtonsClass> read FButtons write FButtons;
+    property messageParamsJson: String read FMessageParamsJson write FMessageParamsJson;
+    {destructor Destroy; override;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TNativeFlowMessageClass;}
+  end;
+
+  TBodyClass = class
+  private
+    FText: String;
+  public
+    property text: String read FText write FText;
+    {function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TBodyClass;}
+  end;
+
+  TInteractiveMessageClass = class
+  private
+    FBody: TBodyClass;
+    FNativeFlowMessage: TNativeFlowMessageClass;
+  public
+    property body: TBodyClass read FBody write FBody;
+    property nativeFlowMessage: TNativeFlowMessageClass read FNativeFlowMessage write FNativeFlowMessage;
+    {constructor Create;
+    destructor Destroy; override;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TInteractiveMessageClass;}
+  end;
+
+  TRowsClass = class
+  private
+    FRowId: String;
+    FTitle: String;
+  public
+    property rowId: String read FRowId write FRowId;
+    property title: String read FTitle write FTitle;
+    {function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TRowsClass;}
+  end;
+
+  TSectionsClass = class
+  private
+    FRows: TArray<TRowsClass>;
+    FTitle: String;
+  public
+    property rows: TArray<TRowsClass> read FRows write FRows;
+    property title: String read FTitle write FTitle;
+    {destructor Destroy; override;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TSectionsClass;}
+  end;
+
+  TListMessageClass = class
+  private
+    FButtonText: String;
+    FDescription: String;
+    FFooterText: String;
+    FListType: String;
+    FSections: TArray<TSectionsClass>;
+    FTitle: String;
+  public
+    property buttonText: String read FButtonText write FButtonText;
+    property description: String read FDescription write FDescription;
+    property footerText: String read FFooterText write FFooterText;
+    property listType: String read FListType write FListType;
+    property sections: TArray<TSectionsClass> read FSections write FSections;
+    property title: String read FTitle write FTitle;
+    {destructor Destroy; override;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TListMessageClass;}
+  end;
+
   TQuotedMessageClass = class
   private
     FConversation: String;
+    FInteractiveMessage: TInteractiveMessageClass;
+    FListMessage: TListMessageClass;
+
   public
     property conversation: String read FConversation write FConversation;
+    property interactiveMessage: TInteractiveMessageClass read FInteractiveMessage write FInteractiveMessage;
+    property listMessage: TListMessageClass read FListMessage write FListMessage;
     //function ToJsonString: string;
     //class function FromJsonString(AJsonString: string): TQuotedMessageClass;
   end;
@@ -449,6 +543,51 @@ type
     //class function FromJsonString(AJsonString: string): TLocationMessageClass;
   end;
 
+  TSingleSelectReplyClass = class
+  private
+    FSelectedRowId: String;
+  public
+    property selectedRowId: String read FSelectedRowId write FSelectedRowId;
+    {function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TSingleSelectReplyClass;}
+  end;
+
+  TListResponseMessageClass = class
+  private
+    FContextInfo: TContextInfoClass;
+    FListType: String;
+    FSingleSelectReply: TSingleSelectReplyClass;
+    FTitle: String;
+  public
+    property contextInfo: TContextInfoClass read FContextInfo write FContextInfo;
+    property listType: String read FListType write FListType;
+    property singleSelectReply: TSingleSelectReplyClass read FSingleSelectReply write FSingleSelectReply;
+    property title: String read FTitle write FTitle;
+    {constructor Create;
+    destructor Destroy; override;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TListResponseMessageClass;}
+  end;
+
+
+  TTemplateButtonReplyMessageClass = class
+  private
+    FContextInfo: TContextInfoClass;
+    FSelectedDisplayText: String;
+    FSelectedId: String;
+    FSelectedIndex: Extended;
+  public
+    property contextInfo: TContextInfoClass read FContextInfo write FContextInfo;
+    property selectedDisplayText: String read FSelectedDisplayText write FSelectedDisplayText;
+    property selectedId: String read FSelectedId write FSelectedId;
+    property selectedIndex: Extended read FSelectedIndex write FSelectedIndex;
+    {constructor Create;
+    destructor Destroy; override;
+    function ToJsonString: string;
+    class function FromJsonString(AJsonString: string): TTemplateButtonReplyMessageClass;}
+  end;
+
+
   TMessageClass = class
   private
     FConversation: String;
@@ -465,6 +604,8 @@ type
     FEditedMessage: TEditedMessageClass;
     FLocationMessage: TLocationMessageClass;
     FPollCreationMessageV3: TPollCreationMessageV3Class;
+    FTemplateButtonReplyMessage: TTemplateButtonReplyMessageClass;
+    FListResponseMessage: TListResponseMessageClass;
 
   public
     property conversation: String read FConversation write FConversation;
@@ -481,6 +622,8 @@ type
     property editedMessage: TEditedMessageClass read FEditedMessage write FEditedMessage;
     property locationMessage: TLocationMessageClass read FLocationMessage write FLocationMessage;
     property pollCreationMessageV3: TPollCreationMessageV3Class read FPollCreationMessageV3 write FPollCreationMessageV3;
+    property templateButtonReplyMessage: TTemplateButtonReplyMessageClass read FTemplateButtonReplyMessage write FTemplateButtonReplyMessage;
+    property listResponseMessage: TListResponseMessageClass read FListResponseMessage write FListResponseMessage;
 
     constructor Create;
     destructor Destroy; override;
